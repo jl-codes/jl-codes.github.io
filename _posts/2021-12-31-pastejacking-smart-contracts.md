@@ -49,7 +49,7 @@ More nefarious, if subtle, applications of this technique exist. Let’s conside
 
 Metamask is a popular crypto wallet commonly used for NFT transactions and blockchain applications. This wallet provides convenience to users by existing both in-browser and as a Google Chrome extension. One of the most convenient features is the fact that users can easily copy their crypto wallet address with a single click:
 
-![pastejacking-crypto-wallets-forkbomb-address-theft-defi](_site/assets/image/posts/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png){:class="img-responsive"}
+![pastejacking-crypto-wallets-forkbomb-address-theft-defi](../../../../../assets/image/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png){:class="img-responsive"}
 
 You can probably see where this is going. An insecure website, or nefarious browser extension, running this javascript copy-injection could hijack a user’s transaction by replacing the presented contract address text with another one, such as the attacker’s address, thus redirecting funds to their wallet permanently.
 
