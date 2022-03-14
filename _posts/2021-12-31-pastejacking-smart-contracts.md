@@ -1,6 +1,7 @@
 ---
 layout: post
 title: 'Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data'
+permalink: /blog/pastejacking-smart-contracts
 categories: [blog]
 ---
 
