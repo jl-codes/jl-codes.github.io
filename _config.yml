@@ -86,6 +86,7 @@ gems:
   - jekyll-sitemap # Create a sitemap using the official Jekyll sitemap gem
   - jekyll-feed # Create an Atom feed using the official Jekyll feed gem
   - jekyll-gist
+  - jekyll-redirect-from
   - jekyll-paginate
   - jekyll-seo-tag
   - jemoji

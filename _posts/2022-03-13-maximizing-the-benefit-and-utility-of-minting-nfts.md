@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Maximizing the Benefit and Utility of Minting NFTs'
-permalink: blog/maximizing-the-benefit-and-utility-of-minting-nfts
+permalink: /blog/maximizing-the-benefit-and-utility-of-minting-nfts
 categories: [blog]
 ---
 
