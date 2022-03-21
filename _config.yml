@@ -46,7 +46,7 @@ footer_links:
     icon: fa fa-rss-square
 
   - title: Twitter
-    url: https://twitter.com/caesar_cypher
+    url: https://twitter.com/forkbombETH
     icon: fa fa-twitter-square
 
   - title: GitHub
@@ -54,7 +54,7 @@ footer_links:
     icon: fa fa-github-square
 
 # Enter your copyright text if you wish to override the default one.
-#copyright: "This site is made with <3 by *me, myself, and I*."
+copyright: "© 2022 forkbomb.io"
 
 #
 # !! You don't need to change any of the configuration flags below !!

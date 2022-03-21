@@ -58,7 +58,7 @@ This attribute of immutability is a double-edged sword; if clerical errors are i
 
 #### Decentralized 
 
-The decentralized nature of blockchain technology means that users may readily access data stored in this ledger. In addition, it is nearly impossible to tamper with data within this ledger. The only “feasible” way to tamper with decentrally stored data is to simultaneously tamper with each blockchain node.
+The decentralized nature of blockchain technology means that users may [readily access data](https://interscity.org/assets/AutAvailChain-Automatic-and-Secure-Data-Availability-through-Blockchain.pdf) stored in this ledger. In addition, it is nearly impossible to tamper with data within this ledger. The only “feasible” way to tamper with decentrally stored data is to simultaneously tamper with each blockchain node.
 
 Data stored on the blockchain is much more readily available than from non-distributed ledgers, thus improving the accessibility of the data. This plays a part in preventing retrieval delays and bottlenecks that can occur with centralized databases that don't take advantage of CDNs. 
 
@@ -69,7 +69,7 @@ The three main pillars of information security include confidentiality, integrit
 
 NFTs may utilize smart contracts as part of their design. A smart contract is the agreement-in-code within the blockchain, enabling the network to store the information indicated within an NFT transaction. This smart contract may be reused as a means of transferring NFT ownership from wallet to wallet.
 
-**Smart contract developers may bake usage stipulations into the NFT**. This capability unlocks possibilities for artists: **royalties** may be hardcoded into the smart contract. We have already seen disruptions within the art world resulting from the fact that artists can now profit from their art in the short term–one doesn’t have to come from money to survive as an artist.
+**Smart contract developers may bake usage stipulations into the NFT**. This capability unlocks possibilities for artists: [royalties](https://cyberscrilla.com/nft-royalties-what-are-they-and-how-do-they-work/) may be hardcoded into the smart contract. We have already seen disruptions within the art world resulting from the fact that artists can now profit from their art in the short term–one doesn’t have to come from money to survive as an artist.
 
 
 ## Use Cases Maximizing NFT Utility
