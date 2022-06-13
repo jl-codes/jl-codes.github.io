@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 'Disaster Recovery Drills in Web 3.0'
-permalink: /blog/distaster-recovery-drills-in-web-3
+permalink: /blog/disaster-recovery-drills-in-web-3
 categories: [blog]
 ---
 
