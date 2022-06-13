@@ -33,8 +33,8 @@ There are two main approaches for maintaining secure custody of private keys, de
 
 
 
-* For** individual users,** store your private keys securely. The best practices for storing this data are comparable to the above guidelines for storing seed phrases. Utilizing a hardware wallet for long-term storage is the most secure option to mitigate the risk to your private keys.
-* For** institutions,** store private keys within a secure secret manager, such as [Vault](https://www.vaultproject.io/) or AWS Secrets Manager. Wallet custodians should treat these private keys like credentials and other secrets. To state the obvious: private keys, regardless of form, should never be stored in plain text internally nor on the blockchain.
+* For **individual users**, store your private keys securely. The best practices for storing this data are comparable to the above guidelines for storing seed phrases. Utilizing a hardware wallet for long-term storage is the most secure option to mitigate the risk to your private keys.
+* For **institutions**, store private keys within a secure secret manager, such as [Vault](https://www.vaultproject.io/) or AWS Secrets Manager. Wallet custodians should treat these private keys like credentials and other secrets. To state the obvious: private keys, regardless of form, should never be stored in plain text internally nor on the blockchain.
 
 
 ### Web 3 Disaster Recovery For Developers:
