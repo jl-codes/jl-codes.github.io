@@ -5,8 +5,6 @@ permalink: /blog/mycelial-lessons-for-securing-the-software-supply-chain
 categories: [blog]
 ---
 
-## Mycelial Lessons for Securing the Software Supply Chain 
-
 Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.
 
 Tech debt refers to the cost of maintaining and updating older software systems that are no longer supported or have become obsolete. This can be a significant burden on organizations, as they must devote resources to maintaining and updating systems that are no longer providing the desired functionality or performance. In the same way, dead and old material in a forest can become an obstacle to growth and progress.
