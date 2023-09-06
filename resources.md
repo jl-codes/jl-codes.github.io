@@ -25,3 +25,5 @@ Below is a section dedicated to media mentions, articles, projects, and other ca
 ### Projects
 
 - [Void Pool - A Grimdark Economics Podcast](https://void-pool.com/){:target="_blank"}
+
+- [outpwn - A digital duel of hack or be hacked"](https://outpwn.com/){:target="_blank"}
