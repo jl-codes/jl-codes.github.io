@@ -1,0 +1,59 @@
+I"�%<p>I spent several hours tracking down a small notebook earlier this week. The reason? I wrote down my seed phrases in this tiny notebook, which I carelessly tracked. Why am I telling you this? This management strategy is a horrible practice. Had I not performed a disaster recovery drill for my digital assets, I might’ve continued storing my seed phrase insecurely. Disaster recovery drills are foundational for security in web 3.0 and enable continued access to blockchain assets.</p>
+
+<h2 id="web-3-wallet-security-basics">Web 3 Wallet Security Basics</h2>
+
+<p>Securing your seed phrase is foundational to security because the seed phrase is the <a href="https://getcoinplate.com/blog/is-a-seed-phrase-the-same-as-a-private-key-the-ultimate-guide-to-private-keys-and-recovery-seed-phrases/">cryptographic basis for accessing the wallet</a>. The seed phrase represents a long string of random numbers — and your wallet uses it to generate the private keys that let you send and spend your crypto. Individuals and institutions should securely secure their wallet seed phrases in multiple locations and, ideally, partitioned. Without the seed phrase, wallet owners will have no recourse for recovering their wallets.</p>
+
+<p>There are well-established standards for <a href="https://www.coinbase.com/learn/crypto-basics/what-is-a-seed-phrase">storing seed phrases</a>. The best practices boil down to:</p>
+
+<ul>
+  <li>Store your seed phase in multiple locations.</li>
+  <li>Ensure access to your seed phrase is sufficiently restricted.</li>
+  <li>If feasible, <a href="https://bitcoin.stackexchange.com/questions/60540/practical-way-to-split-a-bip39-seed-into-a-2-out-of-3-factor-auth">only store parts of the seed phrase at any one site</a> to avoid a single point of compromise.</li>
+  <li>Factor in the possibility of a natural disaster–it may be worth creating etched plates to hold parts of a seed phrase rather than hoping pieces of paper survive a fire, flood, or other acts of g*d.</li>
+  <li>Memorize your seed phrase–you could get hit by a bus, but if you can find a hardware wallet in heaven, you’ll have access to your digital assets. (This is obviously a joke – crypto degens don’t go to heaven)</li>
+</ul>
+
+<p>Wallet owners will inevitably make tradeoffs between security and convenience, but this is par the course for making security decisions. Retaining your seed phrase is fundamental to maintaining access to your digital assets; therefore, protecting this seed phrase should be the top priority of a wallet’s owner.</p>
+
+<h4 id="back-up-private-keys">Back-Up Private Keys</h4>
+
+<p>Creating a backup of private keys is fundamental for creating a successful disaster recovery plan for digital assets. Wallets generate private keys using the seed phrase as input. Seed phrases and private keys aren’t the same, although both allow someone to spend coins in a wallet.</p>
+
+<p>There are two main approaches for maintaining secure custody of private keys, depending on the responsible entity type:</p>
+
+<ul>
+  <li>For <strong>individual users</strong>, store your private keys securely. The best practices for storing this data are comparable to the above guidelines for storing seed phrases. Utilizing a hardware wallet for long-term storage is the most secure option to mitigate the risk to your private keys.</li>
+  <li>For <strong>institutions</strong>, store private keys within a secure secret manager, such as <a href="https://www.vaultproject.io/">Vault</a> or AWS Secrets Manager. Wallet custodians should treat these private keys like credentials and other secrets. To state the obvious: private keys, regardless of form, should never be stored in plain text internally nor on the blockchain.</li>
+</ul>
+
+<h3 id="web-3-disaster-recovery-for-developers">Web 3 Disaster Recovery For Developers:</h3>
+
+<p>Disasters affect developers too. Thus, it is in the best interest of developers who touch decentralized applications to have a well-thought-out, well-tested disaster recovery plan mapped out. For example, consider all the points of access developers need to take a dApp from code to deployment. Not only should developers take care to protect their wallets, but they should protect <a href="https://www.preethikasireddy.com/post/the-architecture-of-a-web-3-0-application">access to their code and deployment infrastructure</a> and should develop a contingency plan to handle hacks and other business logic exploits which may come to light.</p>
+
+<p>An average deployment on leading blockchains <a href="https://medium.com/scrappy-squirrels/estimating-smart-contract-costs-f65acf818c26">can cost thousands of dollars</a>. For this reason, organizations should protect developer access to deployed applications–this entails planning around the risk of developer lockout and enforcing access controls. Access restrictions implemented according to the <a href="https://cycode.com/blog/using-the-principle-of-least-privilege-for-maximum-security/?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=using-the-principle-of-least-privilege-for-maximum-security">principle of least privilege</a> help ensure workflow recovery is possible–take steps to ensure you build with the ability to update, patch, and recover access to deployed smart contracts.</p>
+
+<h4 id="handling-tech-debt">Handling Tech Debt</h4>
+
+<p>In the same way that entropy is inevitable to any physical system, tech debt is a byproduct of the early, do-or-die stages of product development. Once the product has a bit of runway to work with, major refactors can be necessary to improve performance and address any other rickety implementations. This friction in the SDLC introduced by tech debt can lead to immediate and later insecurities if left uncorrected.</p>
+
+<p>In addition, <a href="https://en.wikipedia.org/wiki/Technical_debt">tech debt</a> can lead to churn that harms developer velocity. Continuously fighting with poorly implemented routines, wrangling complicated test cases, and deciphering unconventional logic takes a toll on productivity. Reimplementation comes with costs, but the learning acquired throughout the MVP development process often allows for higher quality. This refactoring can make it easier to add features and capabilities on top of existing applications.</p>
+
+<h4 id="security-training-and-assistance">Security Training and Assistance</h4>
+
+<p>One of the best ways to help prevent security vulnerabilities from escaping to your smart contract or live dApp is to institute security training for developers. This security awareness is especially pertinent for developers of exchanges and other DeFi applications, especially since <a href="https://arstechnica.com/information-technology/2021/12/hackers-drain-31-million-from-cryptocurrency-service-monox-finance/">exploitable bugs can appear in the smart contracts</a>, and the <a href="https://forkbomb.io/blog/pastejacking-smart-contracts">dApp frontend provides an additional attack surface</a> if not carefully guarded.</p>
+
+<p>To improve the security of applications interacting with payment card data, PCI DSS 6.5 requirements state that the developers must receive regular security training at least once a year. Though <a href="https://forkbomb.io/blog/crypto-executive-order-explained">regulation on digital assets is still underway</a>, organizations will see the benefits of providing basic security training to developers in terms of time saved resolving bugs and other vulnerabilities.</p>
+
+<p>One may even recommend solutions that entail <a href="https://cycode.com/blog/cycode-workflows/">automated remediation</a> as a solution, as a means of maximizing the time saved–such tools can even help train developers to support improvements to an organization’s security posture.</p>
+
+<p><strong>Bottom line: Ensure sufficient security training for developers and foster a culture of pride in the quality, and it’ll pay off both figuratively and literally.</strong></p>
+
+<h2 id="recovery-drills-for-cryptocurrencies-and-digital-assets">Recovery Drills for Cryptocurrencies and Digital Assets</h2>
+
+<p>There’s no stand-in for actual disaster recovery practice. Developers should undergo manual wallet recovery training to practice saving digital assets since there are no second chances when it comes to cryptographic assets. Though <a href="forkbomb.io">new digital asset regulation</a> has been hinted at to help mitigate the risks imposed by cryptocurrencies, <a href="https://forkbomb.io/blog/maximizing-the-benefit-and-utility-of-minting-nfts">NFTs</a>, and other assets tied to cryptographic wallets, early adopters are still mainly on their own regarding the security of their assets.</p>
+
+<p>Even after regulation hits, every wallet owner should create and test a plan for their digital asset recovery–it’s the best way to ensure the success of a contingency plan–just make sure you don’t lock yourself out while testing.</p>
+
+<p>Cyber-attacks have hit <a href="https://www.hedgewithcrypto.com/cryptocurrency-exchange-hacks/">crypto exchanges</a>, <a href="https://mirror.xyz/infinitesn4ke.eth/xSu1ssilKkKQocyHABHrs5CWATwJN89EwqQ1fGkeT94">dApps</a>, and other web 3 projects. The Architectural &amp; Security Initiatives for Decentralized Software Security Framework (ACID-SF) is an <a href="https://mirror.xyz/infinitesn4ke.eth/KpvzZHbpXuQEsmz9C30dmdhI7Xv6QFZ1nxBgt12GXu8">experimental cybersecurity framework designed to help improve web 3.0 project security</a>. The ultimate goal of this framework is to enable project stakeholders to make more informed cybersecurity decisions.</p>
+:ET
