@@ -7,15 +7,17 @@ categories: [blog]
 
 Today, I present an enticing invitation to dive deep into the shadowy, interwoven realms of finance, politics, and technology. Enter Void Pool, a uniquely grimdark finance podcast that promises to be an illuminating journey like no other.
 
-### Meet the Void Pool Hosts
+##$$ Meet the Void Pool Hosts
 Void Pool stands out, not just because of its thematic richness, but because of the formidable hosts that anchor its narrative:
 
-#### Void Lord
+### Void Lord
 ![void-lord-void-pool](../../../../../assets/image/void-lord-void-pool.png){:class="img-responsive"}
+
 With a seasoned background from the corridors of Wall Street and the tech giant realms of Google, Void Lord offers insights that combine the world of finance with the cutting-edge disruptions of tech.
 
-#### Void Knight
+### Void Knight
 ![void-knight-void-pool](../../../../../assets/image/void-knight-void-pool.png){:class="img-responsive"}
+
 Bringing a blend of experience in cybersecurity, fintech, and defense, Void Knight demystifies the intricate connections between money, security, and geopolitics.
 
 These are not just any hosts; they are characters with layers, stories, and a passion to share knowledge.
