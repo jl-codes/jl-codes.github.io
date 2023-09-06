@@ -11,7 +11,7 @@ Tech debt refers to the cost of maintaining and updating older software systems 
 
 I’m lucky enough to live in San Francisco, in the heart of the redwood coast. I’ve recently had luck foraging mycorrhizal mushrooms that grow in abundance here.
 
-![bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles](/_site/assets/image/mycelial-lessons-software-supply-chain-security.jpg "bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles")
+![bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles](../../../../../assets/image/mycelial-lessons-software-supply-chain-security.jpg "bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles")
 
 The relationship these mushrooms have with their environment made me realize several things about software supply chain security.
 
