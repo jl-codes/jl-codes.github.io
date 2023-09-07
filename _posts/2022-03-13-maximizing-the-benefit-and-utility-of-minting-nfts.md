@@ -99,7 +99,7 @@ Depending on the specific implementation and the terms outlined in the smart con
 
 [Checksums](https://en.wikipedia.org/wiki/Checksum#:~:text=A%20checksum%20is%20a%20small,upon%20to%20verify%20data%20authenticity.) are small, byte-sized blocks of data derived from a source of data. They are used to detect errors that transmission or storage may have introduced. Developers often use checksums to verify data integrity, but since they do not contain origination information, we cannot verify data authenticity.
 
-**Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums**. Because these NFT checksums are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.
+**Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums**. Because these [NFT checksums](https://ethglobal.com/showcase/nft-checksum-dwqfv) are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.
 
 
 ### Conclusion: Maximizing the Benefits of NFTs
