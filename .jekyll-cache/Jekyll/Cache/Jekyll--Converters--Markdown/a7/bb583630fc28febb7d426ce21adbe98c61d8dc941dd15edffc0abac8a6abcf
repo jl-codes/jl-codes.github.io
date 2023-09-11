@@ -1,6 +1,6 @@
-I"<p>Below is a section dedicated to media mentions, articles, projects, and other carefully curated content.</p>
+I";<p>Below is a section dedicated to media mentions, articles, projects, and other carefully curated content.</p>
 
-<h3 id="conference-talks">Conference Talks</h3>
+<h4 id="conference-talks">Conference Talks</h4>
 
 <ul>
   <li>
@@ -11,7 +11,7 @@
   </li>
 </ul>
 
-<h3 id="interviews">Interviews</h3>
+<h4 id="interviews">Interviews</h4>
 
 <ul>
   <li>
@@ -22,7 +22,7 @@
   </li>
 </ul>
 
-<h3 id="syndicated-work">Syndicated Work</h3>
+<h4 id="syndicated-work">Syndicated Work</h4>
 
 <ul>
   <li><a href="https://devops.com/where-should-i-store-my-iac/" target="_blank">Where .tf Should I Store My IaC? - DevOps.com</a></li>
@@ -31,6 +31,14 @@
 <h3 id="projects">Projects</h3>
 
 <ul>
-  <li><a href="https://void-pool.com/" target="_blank">Void Pool - A Grimdark Economics Podcast</a></li>
+  <li>
+    <p><a href="https://void-pool.com/" target="_blank">Void Pool - A Grimdark Economics Podcast</a></p>
+  </li>
+  <li>
+    <p><a href="https://outpwn.com/" target="_blank">outpwn - A digital duel of hack or be hacked</a></p>
+  </li>
+  <li>
+    <p><a href="https://ethglobal.com/showcase/nft-checksum-dwqfv" target="_blank">NFT Checksum - blockchain-backed file integrity checks</a></p>
+  </li>
 </ul>
 :ET
