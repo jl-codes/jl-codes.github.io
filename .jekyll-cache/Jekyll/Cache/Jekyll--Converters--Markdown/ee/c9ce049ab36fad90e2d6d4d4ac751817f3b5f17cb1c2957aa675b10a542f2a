@@ -1,4 +1,4 @@
-I"ì+<p>NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?</p>
+I",,<p>NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?</p>
 
 <p>This post will start with my preamble of the problem existing with current common viewpoints, describe the technology behind NFTs in a way that makes sense to a human, and discuss the potential applications of this technology that can, with any luck, help further the discussion surrounding the use of NFTs.</p>
 
@@ -89,7 +89,7 @@
 
 <p><a href="https://en.wikipedia.org/wiki/Checksum#:~:text=A%20checksum%20is%20a%20small,upon%20to%20verify%20data%20authenticity.">Checksums</a> are small, byte-sized blocks of data derived from a source of data. They are used to detect errors that transmission or storage may have introduced. Developers often use checksums to verify data integrity, but since they do not contain origination information, we cannot verify data authenticity.</p>
 
-<p><strong>Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums</strong>. Because these NFT checksums are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.</p>
+<p><strong>Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums</strong>. Because these <a href="https://ethglobal.com/showcase/nft-checksum-dwqfv">NFT checksums</a> are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.</p>
 
 <h3 id="conclusion-maximizing-the-benefits-of-nfts">Conclusion: Maximizing the Benefits of NFTs</h3>
 
