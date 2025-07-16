@@ -1,0 +1,114 @@
+---
+layout: page
+title: Consultation Request – Tony Loehr
+permalink: /consulting/form.html
+description: Submit your project to hire Tony Loehr for DevSecOps, AI/ML, financial market AI, supply chain analytics, and hardware consulting.
+---
+
+<h1>Consultation Request</h1>
+<p>Tell me what you need. I’ll review ASAP and we’ll get moving.</p>
+
+<form id="consulting-form">
+  <!-- Hidden fields for Formspree metadata -->
+  <input type="hidden" name="_subject" value="New Consulting Inquiry">
+  <input type="hidden" name="selected_plan_label" id="selected_plan_label" value="">
+
+  <label>Full Name<br>
+    <input type="text" name="name" required>
+  </label><br><br>
+
+  <label>Email<br>
+    <input type="email" name="email" required>
+  </label><br><br>
+
+  <label>Project Description<br>
+    <textarea name="description" rows="6" required></textarea>
+  </label><br><br>
+
+  <label>Desired Start Date<br>
+    <input type="date" name="start_date">
+  </label><br><br>
+
+  <fieldset>
+    <legend>Engagement</legend>
+    <label>
+      <input type="radio" name="plan" value="day" data-label="One-Day Intensive ($1,000)" required>
+      One-Day Intensive ($1,000)
+    </label><br>
+    <label>
+      <input type="radio" name="plan" value="week" data-label="Focused Sprint (Week) – $500/day (5-day block $2,500)">
+      One-Week Sprint ($2,500 / 5 days)
+    </label><br>
+    <label>
+      <input type="radio" name="plan" value="multi" data-label="Longer Engagement (4+ Weeks) – $300/day (20-day block $6,000)">
+      Long Engagement ($6,000 / 20 days)
+    </label>
+  </fieldset>
+  <br>
+
+  <button type="submit">Continue to Payment</button>
+</form>
+
+<script>
+  // ==== CONFIG ====
+  const FORM_ENDPOINT = "https://formspree.io/f/xpwlznqz";
+  const PAYMENT_REDIRECT_BASE = "/consulting/payment.html";
+
+  // ==== PLAN AUTO-SELECT ====
+  (function autoSelectPlanFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = (params.get("plan") || "").toLowerCase();
+
+    // map allowed aliases
+    const map = {
+      "day": "day", "1": "day", "oneday": "day", "intensive": "day",
+      "week": "week", "5": "week", "sprint": "week",
+      "multi": "multi", "20": "multi", "month": "multi", "long": "multi"
+    };
+
+    const normalized = map[raw] || "day";
+    const radio = document.querySelector(`input[name="plan"][value="${normalized}"]`);
+    if (radio) radio.checked = true;
+
+    // set hidden label now
+    updateSelectedPlanLabel();
+  })();
+
+  function updateSelectedPlanLabel() {
+    const checked = document.querySelector('input[name="plan"]:checked');
+    const labelEl = document.getElementById('selected_plan_label');
+    if (!labelEl) return;
+    if (checked) {
+      labelEl.value = checked.dataset.label || checked.value;
+    }
+  }
+
+  // keep label in sync when user changes selection
+  document.querySelectorAll('input[name="plan"]').forEach(r => {
+    r.addEventListener('change', updateSelectedPlanLabel);
+  });
+
+  // ==== FORM SUBMIT HANDLER ====
+  document.getElementById('consulting-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    updateSelectedPlanLabel(); // ensure latest before send
+    const data = new FormData(form);
+
+    // Post to Formspree (lead capture)
+    try {
+      await fetch(FORM_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: data
+      });
+    } catch (err) {
+      console.error('Form submit failed:', err);
+      // continue regardless; lead loss is better than user friction
+    }
+
+    // Redirect to payment selection
+    const plan = data.get('plan') || 'day';
+    window.location.href = `${PAYMENT_REDIRECT_BASE}?plan=${encodeURIComponent(plan)}`;
+  });
+</script>

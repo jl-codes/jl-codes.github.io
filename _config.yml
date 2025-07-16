@@ -36,11 +36,14 @@ navigation_links:
   - title: About
     url: /about
 
+  - title: Consulting
+    url: /consulting
+
   - title: Resources
     url: /resources  
 
-  - title: Search
-    url: /search
+  # - title: Search
+  #   url: /search
 
 # Footer icons
 footer_links:
