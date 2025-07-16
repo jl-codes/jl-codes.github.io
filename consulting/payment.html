@@ -1,0 +1,86 @@
+---
+layout: page
+title: Payment – Tony Loehr Consulting
+permalink: /consulting/payment.html
+robots: noindex
+---
+
+<h1>Redirecting to Secure Payment…</h1>
+<p>If you are not redirected automatically, choose your payment below.</p>
+
+<ul>
+  <li><a id="fallback-day"   href="javascript:void(0)">One-Day Intensive ($1,000)</a></li>
+  <li><a id="fallback-week"  href="javascript:void(0)">One-Week Sprint ($2,500)</a></li>
+  <li><a id="fallback-multi" href="javascript:void(0)">Long Engagement ($6,000)</a></li>
+</ul>
+
+<!-- Stripe.js -->
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+(function() {
+  // ===== STRIPE CONFIG =====
+  const STRIPE_PUBLISHABLE_KEY = "pk_test_51RlbqrQ5TXjzLjT6LGB8wp0nnFSSHznCIFQbbZ2iVZuFj6NwmnOrNcOB0xpJC3i6kSVlNa6N1p1N9g8tnQgNltzJ00Ie1XtwX9"; // TEST
+
+  // Your actual Price IDs
+  const PRICE_DAY   = "price_1Rlc78Q5TXjzLjT6x7xglG1t";  // $1,000
+  const PRICE_WEEK  = "price_1Rlc8aQ5TXjzLjT6JzqKq5Wv";  // $2,500
+  const PRICE_MULTI = "price_1RlcAnQ5TXjzLjT6vPhTRyPN";  // $6,000
+
+  // === PRODUCTION BASE URL (edit if you use custom domain) ===
+  const SITE_BASE_URL = "{{ site.url | default: site.github.url | default: 'https://forkbomb.io' }}";
+
+  // Build success / cancel URLs. Use current origin if valid http(s), else fallback to production.
+  const loc = window.location;
+  const originOk = /^https?:/i.test(loc.protocol);
+  const base = originOk ? loc.origin : SITE_BASE_URL;
+
+  const SUCCESS_BASE = base + "/consulting/confirmation.html";
+  const CANCEL_BASE  = base + "/consulting/form.html";
+
+  // Read selected plan from query params
+  const params = new URLSearchParams(window.location.search);
+  const rawPlan = (params.get("plan") || "").toLowerCase();
+
+  // alias mapping
+  const planMap = {
+    "day": "day", "1": "day", "oneday": "day", "intensive": "day",
+    "week": "week", "5": "week", "sprint": "week",
+    "multi": "multi", "20": "multi", "long": "multi"
+  };
+  const plan = planMap[rawPlan] || "day";
+
+  // Pick priceID
+  let priceId = PRICE_DAY;
+  if (plan === "week") priceId = PRICE_WEEK;
+  if (plan === "multi") priceId = PRICE_MULTI;
+
+  // Init Stripe
+  const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+
+  function go(price, planValue) {
+    console.log("[Checkout] starting", { price, planValue, success: SUCCESS_BASE, cancel: CANCEL_BASE });
+    stripe.redirectToCheckout({
+      lineItems: [{ price: price, quantity: 1 }],
+      mode: 'payment',
+      successUrl: SUCCESS_BASE + "?plan=" + encodeURIComponent(planValue) + "&session_id={CHECKOUT_SESSION_ID}",
+      cancelUrl:  CANCEL_BASE  + "?plan=" + encodeURIComponent(planValue) + "&canceled=1"
+    }).then(function (result) {
+      if (result.error) {
+        console.error("[Checkout] error:", result.error.message);
+        alert("Stripe checkout error: " + result.error.message);
+      }
+    });
+  }
+
+  // Bind fallback buttons
+  document.getElementById("fallback-day").addEventListener("click", function(e){ e.preventDefault(); go(PRICE_DAY, "day"); });
+  document.getElementById("fallback-week").addEventListener("click", function(e){ e.preventDefault(); go(PRICE_WEEK, "week"); });
+  document.getElementById("fallback-multi").addEventListener("click", function(e){ e.preventDefault(); go(PRICE_MULTI, "multi"); });
+
+  // Auto redirect after a short delay
+  // Delay slightly longer to allow Stripe.js to initialize reliably
+  setTimeout(function(){ go(priceId, plan); }, 750);
+})();
+</script>
+
+<meta name="robots" content="noindex,nofollow">

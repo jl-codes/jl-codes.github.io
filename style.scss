@@ -606,6 +606,84 @@ footer {
   }
 }
 
+// Button styles
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  margin: 10px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+}
+
+.btn-primary {
+  background-color: $blue;
+  color: $white;
+  
+  &:hover {
+    background-color: #2e6da4;
+    color: $white;
+  }
+  
+  &:visited {
+    color: $white;
+  }
+}
+
+// Form styles
+form {
+  max-width: 600px;
+  margin: 0 auto;
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: $darkGray;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid $lightGray;
+    border-radius: 4px;
+    font-size: 16px;
+    font-family: $sans-font-family;
+    
+    &:focus {
+      outline: none;
+      border-color: $blue;
+      box-shadow: 0 0 0 2px #cce7ff;
+    }
+  }
+  
+  textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  button[type="submit"] {
+    @extend .btn;
+    @extend .btn-primary;
+    font-size: 18px;
+    padding: 15px 30px;
+  }
+}
+
 // Settled on moving the import of syntax highlighting to the bottom of the CSS
 // ... Otherwise it really bloats up the top of the CSS file and makes it difficult to find the start
 @import "message";
