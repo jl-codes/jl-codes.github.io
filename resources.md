@@ -24,6 +24,8 @@ Below is a section dedicated to media mentions, articles, projects, and other ca
 
 ### Projects
 
+- [GeneralLithiumSDK - open source Arduino/ESP32 library turing esp32s into battery management systems](https://registry.platformio.org/libraries/jl-codes/GeneralLithiumSDK/){:target="_blank"}
+
 - [Void Pool - A Grimdark Economics Podcast](https://void-pool.com/){:target="_blank"}
 
 - [outpwn - A digital duel of hack or be hacked](https://outpwn.com/){:target="_blank"}
