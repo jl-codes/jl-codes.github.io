@@ -5,8 +5,6 @@ permalink: /about/
 description: "About Tony Loehr — DevRel/Developer Advocacy leader with a 5,000+ member SF community; DevSecOps, AI/ML, applied AI for financial markets and supply chain, embedded hardware/firmware. Founder/operator of Frontier Makerspace. B.A. Economics. Open to consulting, fractional CTO, advisory, and speaking."
 ---
 
-# About Tony Loehr
-
 **DevSecOps, AI/ML, and hardware/firmware engineer** helping teams ship secure, scalable systems—fast. I work at the intersection of **software**, **security**, **data/ML**, and **embedded/hard‑tech**, with a strong focus on ROI and operational simplicity.
 
 Samples of my work available under [resources](/resources/).
