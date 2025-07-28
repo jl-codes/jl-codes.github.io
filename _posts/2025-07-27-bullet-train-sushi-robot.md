@@ -7,7 +7,7 @@ description: "Designing and building a bullet train–style sushi delivery robot
 ---
 
 > **TL;DR** — I built a **bullet train sushi robot** control stack for Zenpo Sushi.  
-> The mobile UI is a **Flutter** app that drives a Wi‑Fi robot over simple HTTP commands; the firmware is **Arduino** (WiFiNINA) orchestrating dual motors, a Hall sensor for position, a hardware **Return/Home** button, and idle‑safety logic. This post walks through the architecture, the code, and the production hardening plan.
+The mobile UI is a **Flutter** app that drives a Wi‑Fi robot over simple HTTP commands; the firmware is **Arduino** (WiFiNINA) orchestrating dual motors, a Hall sensor for position, a hardware **Return/Home** button, and idle‑safety logic. This post walks through the architecture, the code, and the production hardening plan.
 
 ---
 
@@ -218,6 +218,7 @@ Why this works well in a kitchen
 ```bash
 curl http://192.168.1.201/SENSOR
 curl http://192.168.1.201/GOTO7
+```
 
 ## Production hardening roadmap
 
