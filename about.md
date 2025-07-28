@@ -48,7 +48,7 @@ I run **Frontier Makerspace**—a hands‑on workshop inside **Frontier Tower** 
 
 > Frontier Tower hosts floors for **AI & autonomous systems**, **robotics/hard tech**, a **co‑working library**, and more—designed to cross‑pollinate deep‑tech communities building the next wave.
 
-Learn more: **frontiertower.io**.
+Learn more: [frontiertower.io](https://frontiertower.io).
 
 ---
 
@@ -85,7 +85,7 @@ Learn more: **frontiertower.io**.
 
 - **Consulting:** [Start a consultation](/consulting/)  
 - **Email:** turingxo@gmail.com  
-- **Makerspace:** frontiertower.io
+- **Makerspace:** [frontiertower.io](https://frontiertower.io)
 
 ---
 
