@@ -9,6 +9,8 @@ description: "About Tony Loehr — DevRel/Developer Advocacy leader with a 5,000
 
 **DevSecOps, AI/ML, and hardware/firmware engineer** helping teams ship secure, scalable systems—fast. I work at the intersection of **software**, **security**, **data/ML**, and **embedded/hard‑tech**, with a strong focus on ROI and operational simplicity.
 
+Samples of my work available under [resources](/resources/).
+
 I’m available for **consulting**, **fractional CTO**, **advisory**, and **speaking**.  
 👉 **Hire me:** [Consulting & Pricing](/consulting/)
 
