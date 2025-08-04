@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://localhost:4000/games/flappy/</loc>
+<lastmod>2025-08-03T23:20:47-07:00</lastmod>
+</url>
+<url>
 <loc>http://localhost:4000/blog/pastejacking-smart-contracts</loc>
 <lastmod>2021-12-31T00:00:00-08:00</lastmod>
 </url>
@@ -25,7 +29,15 @@
 <lastmod>2023-09-05T00:00:00-07:00</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/about</loc>
+<loc>http://localhost:4000/blog/predicting-the-pop-of-the-housing-bubble-through-dscr-loans</loc>
+<lastmod>2023-09-10T00:00:00-07:00</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/blog/bullet-train-sushi-robot</loc>
+<lastmod>2025-07-27T00:00:00-07:00</lastmod>
+</url>
+<url>
+<loc>http://localhost:4000/about/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/archive/</loc>
@@ -34,7 +46,25 @@
 <loc>http://localhost:4000/categories/</loc>
 </url>
 <url>
+<loc>http://localhost:4000/consulting/confirmation.html</loc>
+</url>
+<url>
+<loc>http://localhost:4000/consulting/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/consulting/form.html</loc>
+</url>
+<url>
 <loc>http://localhost:4000/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/games/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/play/flappy/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/consulting/payment.html</loc>
 </url>
 <url>
 <loc>http://localhost:4000/resources</loc>

