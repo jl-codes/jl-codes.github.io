@@ -39,11 +39,19 @@ navigation_links:
   - title: Consulting
     url: /consulting
 
+  - title: Games
+    url: /games
+
   - title: Resources
     url: /resources  
 
   # - title: Search
   #   url: /search
+
+collections:
+  games:
+    output: true
+    permalink: /games/:name/
 
 # Footer icons
 footer_links:
